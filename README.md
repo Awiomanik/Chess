@@ -23,7 +23,7 @@
 ## Introduction
 This is a Python-based chess game project. Originally started a few years ago, this repository contains the old files and ongoing development to build a fully-featured chess game. The aim is to practice coding skills, especially python programming language and possibly ML (machine learning) while still providing an engaging and interactive chess-playing experience.
 
-# Features
+## Features
 - ♟️ Basic chess game mechanics
 - 🖥️ User interface for playing chess
 - 💾 Save and load game states (🛠️ future implementation)
@@ -34,10 +34,12 @@ This is a Python-based chess game project. Originally started a few years ago, t
 
 ## Installation
 To get started with the Chess Game, follow these steps:
-### Prerequisites
+
+**Prerequisites**
 - Python 3.6+
 - Git
-### Clone the Repository
+
+**Clone the Repository**
 ```bash
 git clone https://github.com/Awiomanik/Chess.git
 cd Chess
@@ -72,21 +74,24 @@ python main.py
 </details>
 <details>
     <summary><b>Contributing</b></summary>
+    <p>
         We welcome contributions from the community! To contribute to the Chess Game project, follow these steps:
-
-        Fork the repository
-        Create a new branch (**git checkout -b feature-branch**)
-        Commit your changes (**git commit -m 'Add some feature'**)
-        Push to the branch (**git push origin feature-branch**)
-        Open a pull request
-        Please make sure to update tests as appropriate.
-
+    </p>
+    <ol>
+        <li>Fork the repository</li>
+        <li>Create a new branch (<code>git checkout -b feature-branch</code>)</li>
+        <li>Commit your changes (<code>git commit -m 'Add some feature'</code>)</li>
+        <li>Push to the branch (<code>git push origin feature-branch</code>)</li>
+        <li>Open a pull request</li>
+    </ol>
+    <p>Please make sure to update tests as appropriate.</p>
 </details>
+
 <details>
   <summary><b>Branches</b></summary>
   <p>
-    <b>main:</b> The main branch contains the latest stable version.<br>
-    <b>legacy_version:</b> Contains the old version of the chess game code.
+    <code>main</code><b>:</b> The main branch contains the latest stable version.<br>
+    <code>legacy_version</code><b>:</b> Contains the old version of the chess game code.
   </p>
 </details>
 
@@ -94,13 +99,19 @@ python main.py
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Credits and Contact
-<p align="center">
-  <b><h3>Authors:</h3></b>
-  <b>Wojciech<br>Kośnik-Kowalczuk</b><br><br>
-  <b><h3>Contact:</h3></b>
-  If you have any questions, suggestions or feedback, please feel free to reach out:<br>
-  Email: <a href="mailto:wojciech.kosnik.kowalczuk@gmail.com">wojciech.kosnik.kowalczuk@gmail.com</a>
-</p>
+
+<div align="center">
+
+**Wojciech**  
+**Kośnik-Kowalczuk**
+
+<br>
+
+**Contact:**
+If you have any questions, suggestions, or feedback, please feel free to reach out:<br>
+**Email:** [wojciech.kosnik.kowalczuk@gmail.com](mailto:wojciech.kosnik.kowalczuk@gmail.com)
+
+</div>
 
 ## Disclaimer
 This project is primarily an educational endeavour and may not be optimized for all systems. Use at your own risk!
