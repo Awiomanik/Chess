@@ -1,9 +1,9 @@
 <h1 align="center">
-  ♜│♞│♝│♛│♚│♝│♞│♜<br>
-  ♟│♟│♟│♟│♟│♟│♟│♟<br>
+  ♜♞♝♛♚♝♞♜<br>
+  ♟♟♟♟♟♟♟♟<br>
   Chess Game<br>
-  ♙│♙|♙│♙│♙│♙│♙│♙<br>
-  ♖│♘│♗│♕│♔│♗│♘│♖
+  ♙♙♙♙♙♙♙♙<br>
+  ♖♘♗♕♔♗♘♖
 </h1>
 
 ## Table of Contents
@@ -83,26 +83,24 @@ python main.py
 
 </details>
 <details>
-    <summary><b>Branches</b></summary>
-        - **main**: The main branch contains the latest stable version.
-        - **legacy_version**: Contains the old version of the chess game code.
+  <summary><b>Branches</b></summary>
+  <p>
+    <b>main:</b> The main branch contains the latest stable version.<br>
+    <b>legacy_version:</b> Contains the old version of the chess game code.
+  </p>
 </details>
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Credits and Contact
-### Authors:
 <p align="center">
-  <b>
-    Wojciech<br>
-    Kośnik-Kowalczuk
-  </b>
+  <b><h3>Authors:</h3></b>
+  <b>Wojciech<br>Kośnik-Kowalczuk</b><br><br>
+  <b><h3>Contact:</h3></b>
+  If you have any questions, suggestions or feedback, please feel free to reach out:<br>
+  Email: <a href="mailto:wojciech.kosnik.kowalczuk@gmail.com">wojciech.kosnik.kowalczuk@gmail.com</a>
 </p>
-
-### Contact
-If you have any questions, sugestions or feedback, please feel free to reach out:
-Email: [wojciech.kosnik.kowalczuk@gmail.com](mailto:wojciech.kosnik.kowalczuk@gmail.com)
 
 ## Disclaimer
 This project is primarily an educational endeavour and may not be optimized for all systems. Use at your own risk!
