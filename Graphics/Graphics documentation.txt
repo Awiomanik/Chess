@@ -1,0 +1,3 @@
+board.png - 800 x 800 px
+
+pieces - 80 x 80 px
