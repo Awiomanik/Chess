@@ -38,6 +38,11 @@ To get started with the Chess Game, follow these steps:
 **Prerequisites**
 - Python 3.6+
 - Git
+- Full-HD (or better) display
+
+**Dependencies**
+This project uses modules listed below:
+- ```pygame```
 
 **Clone the Repository**
 ```bash
@@ -46,7 +51,7 @@ cd Chess
 ```
 
 ## Usage
-To start the chess game, run the following command:
+To start the chess game, run the following command in the root catalogue of the repository:
 
 ```bash
 python main.py
