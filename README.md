@@ -1,6 +1,10 @@
-# ♜│♞│♝│♛│♚│♝│♞│♜
-# ♟│♟│Chess Game│♙│♙
-# ♖│♘│♗│♕│♔│♗│♘│♖
+<h1 align="center">
+  ♜│♞│♝│♛│♚│♝│♞│♜<br>
+  ♟│♟│♟│♟│♟│♟│♟│♟<br>
+  Chess Game<br>
+  ♙│♙|♙│♙│♙│♙│♙│♙<br>
+  ♖│♘│♗│♕│♔│♗│♘│♖
+</h1>
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -71,9 +75,9 @@ python main.py
         We welcome contributions from the community! To contribute to the Chess Game project, follow these steps:
 
         Fork the repository
-        Create a new branch (```git checkout -b feature-branch```)
-        Commit your changes (```git commit -m 'Add some feature'```)
-        Push to the branch (```git push origin feature-branch```)
+        Create a new branch (**git checkout -b feature-branch**)
+        Commit your changes (**git commit -m 'Add some feature'**)
+        Push to the branch (**git push origin feature-branch**)
         Open a pull request
         Please make sure to update tests as appropriate.
 
@@ -89,7 +93,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Credits and Contact
 ### Authors:
-Wojciech Kośnik-Kowalczuk
+<p align="center">
+  <b>
+    Wojciech<br>
+    Kośnik-Kowalczuk
+  </b>
+</p>
 
 ### Contact
 If you have any questions, sugestions or feedback, please feel free to reach out:
