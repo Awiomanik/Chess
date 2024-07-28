@@ -30,7 +30,7 @@ class UI():
     """
 
     # Class atributes
-    FPS: int = 60 # framerate
+    FPS: int = 30 # framerate
     RES: tuple[int, int] = 1920, 1080 # resolution (Full-HD)
 
     def init(self, root_dir) -> None:

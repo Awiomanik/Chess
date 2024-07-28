@@ -62,7 +62,7 @@ python main.py
     <summary><b>Roadmap</b></summary>
         The project is in active development. Here are some key milestones, ideas and features planned for the future:
 
-        - [ ] Initialize repository
+        - [x] Initialize repository
         - [ ] Collect and parse legacy files
         - [ ] Create basic UI
         - [ ] Implement chess rules and mechanics based on legacy code
