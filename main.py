@@ -13,7 +13,7 @@ import os
 # MAIN
 if __name__ == "__main__":
     # Get current directory for easy relative paths
-    scripts_directory = os.path.dirname(os.path.abspath(__file__))
+    scripts_directory: str = os.path.dirname(os.path.abspath(__file__))
     # Run the program
     game.Game(scripts_directory)
 

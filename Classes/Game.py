@@ -1,12 +1,12 @@
 """
-Game class for menaging all other classes.
+Game class for menaging all other classes file.
 Initializes all needed classes and takes care of data flow between them.
 
 Author: WK-K
 """
 
 # Project modules
-import UI.UI_main as ui_main
+from Classes.UI.UI_main import UI
 
 class Game():
     """
@@ -19,13 +19,14 @@ class Game():
     Methods:
 
     """
-    def init(self, root_dir: str) -> None:
+    def __init__(self, root_dir: str) -> None:
         """
         Initializes the Game instance.
         
         Arguments:
-            root_directory (str): Path to the main catalogue of the repository for relative path operations.
+            root_dir (str): Path to the main catalogue of the repository for relative path operations.
         """
 
         self.root_dir: str = root_dir
-        self.ui: ui_main.UI = ui_main.UI(root_dir)
+        self.ui: UI = UI(self.root_dir)
+        self.ui.main_menu()
