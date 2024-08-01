@@ -84,18 +84,20 @@ class UI():
                 main_menu_background.blit(main_menu_background_img, (x, y))
 
         # pawn image
-        rook_gfx: pygame.image = pygame.image.load(os.path.join(self.gfx_dir, "MainMenu", "rookb.png"))
+        rook_gfx: pygame.image = pygame.image.load(os.path.join(self.gfx_dir, "MainMenu", "rook.png"))
 
         # Text
         font = pygame.font.Font(os.path.join(self.gfx_dir, "Fonts", "handdrawn.ttf"), 100)
 
-        title = font.render("The  Chess  Game", False, (0, 0, 0))
+        title = font.render("The  Chess  Game", False, (225, 225, 225))
         title_coord = ((1920 - title.get_rect()[2])//2, 130)
 
         options = []
         for opt in ["Play", "Load", "Exit"]:
-            options.append(font.render(opt, False, (0, 0, 0)))
+            options.append(font.render(opt, False, (225, 225, 225)))
         current_option = 0
+
+        temp_surface = pygame.Surface((840, 720), pygame.SRCALPHA)
 
         menu_loop_running = True
 
@@ -120,6 +122,8 @@ class UI():
                             menu_loop_running = False
 
             self.screen.blit(main_menu_background, (0, 0))
+            pygame.draw.rect(temp_surface, (0, 0, 0, 75), (0, 0, 840, 720), border_radius=20)
+            self.screen.blit(temp_surface, (540, 60))
             self.screen.blit(rook_gfx, (title_coord[0] + 10, 370 + 120 * current_option))
             self.screen.blit(title, title_coord)
             option_coord_y = 360
