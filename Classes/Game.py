@@ -6,7 +6,7 @@ Author: WK-K
 """
 
 # Project modules
-from Classes.UI.UI_main import UI
+from Classes.UI.Main_menu import Main_menu
 
 class Game():
     """
@@ -28,5 +28,7 @@ class Game():
         """
 
         self.root_dir: str = root_dir
-        self.ui: UI = UI(self.root_dir)
-        self.ui.main_menu()
+
+        # testing main_menu
+        self.ui: Main_menu = Main_menu(self.root_dir)
+        self.ui.display_menu()
