@@ -39,7 +39,7 @@ class layout:
     fields = [] *64 # Array of fields on the board (0 = a1, 1 = a2, ..., 63 = h8) with numbers indicating occupation
     white_moves = True
     moves_made = 0
-    castling = [True]*4 # Castling availability as in FEN notation, that is: K, Q, k, q
+    castling = [True]*4 # Castling availability as in FEN notation, that is: K, Q, k, q.
     en_passant = None # fields array index of squere over whitch a pawn has passed by moving two squeres forward
     clock = 0 # number of moves made since last capture or pawn advance used in 50-move rule
     # constants
