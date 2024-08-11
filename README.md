@@ -63,7 +63,7 @@ python main.py
         The project is in active development. Here are some key milestones, ideas and features planned for the future:
 
         - [x] Initialize repository
-        - [ ] Collect and parse legacy files
+        - [x] Collect and parse legacy files
         - [ ] Create basic UI
         - [ ] Implement chess rules and mechanics based on legacy code
         - [ ] Build initial prototype for 1v1 games
