@@ -36,6 +36,7 @@ class InputEvent:
         self.data: tuple[int, int]|str = data
     
     def __repr__(self):
+        """Returns stiring representation of the InputEvent (one line)"""
         return f"InputEvent({self.event_type}, {self.data})"
 
 class InputStack:
@@ -91,15 +92,14 @@ class InputStack:
         return None
 
     def clear(self) -> None:
-        """
-        Clear all events from the stack.
-        """
+        """Clear all events from the stack."""
         self.stack.clear()
 
     def __repr__(self) -> str:
         """
         Returns a string representation of the InputStack instance, 
         which includes all the input events currently in the stack numbered.
+        Representation is a multiple line string.
 
         Returns:
         - (str) A string that represents the InputStack object.

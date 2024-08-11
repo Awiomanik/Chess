@@ -1,6 +1,6 @@
 """
 Main file of the project. 
-This script works as programm launcher.
+This script works as programm launcher, imports and runs game instance.
 
 Author: WK-K
 """

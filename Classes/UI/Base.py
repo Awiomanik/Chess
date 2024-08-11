@@ -88,8 +88,12 @@ class UI_base():
 
     # Updating UI state
     def update(self) -> None:
+        # Blit all graphics
         for surface, coords in self.render_queue:
             self.screen.blit(surface, coords)
+        # Update pygame and clock every FPS'th of a secound
+        pygame.display.flip()
+        self.clock.tick(self.FPS)
 
     def get_input(self) -> bool:
         """
