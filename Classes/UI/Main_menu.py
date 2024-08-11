@@ -96,11 +96,13 @@ class Main_menu(UI_base):
             # get and menege user input
             # Whether the window was closed
             if self.get_input():
+                self.screen.fill((0, 0,0))
                 return "Terminated"
             # Wheter any interaction happened
             if self.event_callbacks.stack:
                 # Whether interaction triggered state change
                 if (action:=self.handle_input()):
+                    self.screen.fill((0, 0,0))
                     return action
 
             # prepare elements to be displayed\

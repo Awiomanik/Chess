@@ -7,6 +7,7 @@ Author: WK-K
 
 # Project modules
 from Classes.UI.Main_menu import Main_menu
+from Classes.UI.Gameplay import Gameplay
 
 class Game():
     """
@@ -30,8 +31,10 @@ class Game():
         self.root_dir: str = root_dir
 
         # testing main_menu
-        self.ui: Main_menu = Main_menu(self.root_dir)
-        action: str = self.ui.display_menu()
+        self.menu_ui: Main_menu = Main_menu(self.root_dir)
+        self.gameplay_ui: Gameplay = Gameplay(self.root_dir, "Developer")
+        action: str = self.menu_ui.display_menu()
 
         # testing gameplay
-        
+        if action == "Play":
+            self.gameplay_ui.gameplay()
