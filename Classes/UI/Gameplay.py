@@ -68,6 +68,9 @@ class Gameplay(UI_base):
             self.gfx_chessboard.blit(marks_numbers[7-i], (15, i*120 + 90)) # left
             self.gfx_chessboard.blit(marks_numbers[7-i], (1035, i*120 + 90)) # right
 
+        # PIECES
+        
+
         # INFORMATION BLOCK
         self.gfx_info: pygame.Surface = pygame.Surface((860, 1080))
         self.gfx_info.fill((60, 30, 0)) # dark brown
@@ -75,9 +78,6 @@ class Gameplay(UI_base):
         self.gfx_info.blit(marks_font.render("Current FEN:   ", False, (255, 229, 204)), (20, 120))
         self.gfx_info.blit(marks_font.render("...            ", False, (255, 229, 204)), (20, 220))
         
-
-
-
         """# prepare option piece image
         self.rook_gfx: pygame.image = pygame.image.load(os.path.join(self.gfx_dir, "MainMenu", "rook.png"))
 

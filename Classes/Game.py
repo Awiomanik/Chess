@@ -8,6 +8,7 @@ Author: WK-K
 # Project modules
 from Classes.UI.Main_menu import Main_menu
 from Classes.UI.Gameplay import Gameplay
+from Classes.Chess.Layout import Layout
 
 class Game():
     """
@@ -37,4 +38,6 @@ class Game():
 
         # testing gameplay
         if action == "Play":
+            layout = Layout()
+            print('\nStaring layoutout: ', layout, '\n')
             self.gameplay_ui.gameplay()

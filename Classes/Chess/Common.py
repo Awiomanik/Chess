@@ -29,8 +29,33 @@ dictonary assosiating number in fields array to piece letter from fen:
 6 - k = king
 ^ + 8 - whites (capital letters)
 """
-
-
+file_rank_string2board_index = {} 
+"""
+dictionary assosiating file-rank string with place in array:
+a1 -> 0,
+...,
+b2  -> 9,
+...,
+h8 -> 63.
+"""
+all_possible_ranks = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+all_possible_files = ['1', '2', '3', '4', '5', '6', '7', '8']
+temp_value = 0
+for file in all_possible_files:
+    for rank in all_possible_ranks:
+        file_rank_name = rank + file
+        file_rank_string2board_index[file_rank_name] = temp_value
+        temp_value += 1
+board_index2file_rank_string = {v: k for k, v in file_rank_string2board_index.items()}
+"""
+dictionary assosiating file-rank string with place in array:
+0 -> a1,
+...,
+9  -> b2,
+...,
+63 -> h8.
+"""
+del all_possible_files, all_possible_ranks, temp_value
 
 # FUNCTIONS:
 # -- FEN --
@@ -113,8 +138,7 @@ def array_of_fields2fen(arr: list[int]) -> str:
 
 
 
-"""import chess_translator as trans
-import chess_parameters as param
+"""
 import traceback
 import pygame
 import copy
@@ -191,7 +215,6 @@ def draw_marks(ml, mn, screen):
 
 
 # -- POSSIBLE MOVES --
-
 # checking if a given field is under attack of a given color pieces
 def if_field_under_attack(layout, index, under_black_attack, is_field_empty):
     # Create a temporary layout copy to simulate piece moves for attack checking
@@ -227,7 +250,7 @@ def is_king_in_check(layout, white_king_bool):
     for i, field in enumerate(layout.fields):
         if field == king_piece:
            return if_field_under_attack(layout, i, not white_king_bool, False)
-# takes list of possible moves and removes moves that would lead to king inn check
+# takes list of possible moves and removes moves that would lead to king in check
 def moves_without_check(layout, list_of_moves, piece_index):
     layout_temp = copy.deepcopy(layout)
     piece_temp = 0

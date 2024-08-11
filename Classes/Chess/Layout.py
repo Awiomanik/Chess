@@ -1,9 +1,18 @@
 """
+This module defines the `layout` class, which represents the layout of a chessboard and handles various operations 
+such as updating the board state based on moves, converting between FEN notation and the internal board representation, 
+and calculating possible moves for pieces.
+
+Classes:
+    - layout: Represents the layout of a chessboard, including the state of the board, castling rights, en passant square, 
+      and the move clock.
 
 Author: WK-K
 """
 
-class layout:
+from Classes.Chess.Common import *
+
+class Layout:
     '''
     Represents the layout of a chessboard.
 
@@ -25,28 +34,45 @@ class layout:
         - clock (int): Number of moves made since the last capture or pawn advance (used in the 50-move rule)
     
     METHODS:
-        - __init__(fen: str | None=None) -> None: Initializes the layout instance from FEN (If 'fen' is None, initializes with the default layout).
-        - _init_default() -> None: Initializes the layout with the default piece positions.
-        - __str__() -> str: Returns string representation of the current layout instnce (multiline).
-        - fen2layout(fen): Initializes the layout from the given FEN notation.
-        - layout2fen(): Returns the FEN notation representation of the layout.
-        - update(new_field, old_field): updates layout atributes after the move
-        - casttling_update(old_piece, old_field, new_field): part of update, extracted for clarity
+        - __init__(fen: str | None=None) -> None: 
+            Initializes the layout instance from FEN (If 'fen' is None, initializes with the default layout).
+        
+        - _init_default() -> None: 
+            Initializes the layout with the default piece positions.
+        
+        - __str__() -> str: 
+            Returns string representation of the current layout instance (multiline).
+        
+        - fen2layout(fen: str) -> None: 
+            Initializes the layout from the given FEN notation.
+        
+        - layout2fen() -> str: 
+            Returns the FEN notation representation of the layout.
+        
+        - update(old_field: int, new_field: int) -> None: 
+            Updates layout attributes based on a move from old_field to new_field.
+        
+        - castling_update(old_piece: int, old_field: int, new_field: int) -> None: 
+            Handles the castling logic when updating the layout.
+        
+        - all_possible_moves_for_piece(index: int, with_castling_bool: bool=True) -> tuple[list[int], list[int]]:
+            Calculates all possible moves for a specific piece at the given index, including special handling for castling 
+            and en passant, and returns a tuple containing lists of possible non-capturing and capturing moves.
     '''
     
     # ATRIBUTES
-    piece_count = 0
-    fields = [] *64 # Array of fields on the board (0 = a1, 1 = a2, ..., 63 = h8) with numbers indicating occupation
-    white_moves = True
-    moves_made = 0
-    castling = [True]*4 # Castling availability as in FEN notation, that is: K, Q, k, q.
-    en_passant = None # fields array index of squere over whitch a pawn has passed by moving two squeres forward
-    clock = 0 # number of moves made since last capture or pawn advance used in 50-move rule
+    piece_count: int = 0
+    fields: list[int] = [] * 64 # Array of fields on the board (0 = a1, 1 = a2, ..., 63 = h8) with numbers indicating occupation
+    white_moves: bool = True
+    moves_made: int = 0
+    castling: list[bool] = [True] * 4 # Castling availability as in FEN notation, that is: K, Q, k, q.
+    en_passant: int = None # fields array index of squere over whitch a pawn has passed by moving two squeres forward
+    clock: int = 0 # number of moves made since last capture or pawn advance used in 50-move rule
     # constants
-    ROOK_MOVEMENT_DIRECTIONS =      [(1, 0), (-1, 0), (0, 1), (0, -1)]
-    KNIGHT_MOVEMENT_OFFSET =        [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
-    BISHOP_MOVEMENT_DIRECTIONS =    [(1, 1), (-1, -1), (1, -1), (-1, 1)]
-    QUEEN_MOVEMENT_DIRECTIONS =     [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+    ROOK_MOVEMENT_DIRECTIONS: list[tuple[int, int]] =      [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    KNIGHT_MOVEMENT_OFFSET: list[tuple[int, int]] =        [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
+    BISHOP_MOVEMENT_DIRECTIONS: list[tuple[int, int]] =    [(1, 1), (-1, -1), (1, -1), (-1, 1)]
+    QUEEN_MOVEMENT_DIRECTIONS: list[tuple[int, int]] =     [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
 
     # METHODS
     # magic methods
@@ -61,19 +87,21 @@ class layout:
             self.fen2layout(fen) 
     def _init_default(self) -> None:
         '''Initializes layout with standard arrangement of pieces'''
-        self.piece_count = 32
-        self.fields = [10, 11, 12, 13, 14, 12, 11, 10,
-                       9, 9, 9, 9, 9, 9, 9, 9,
-                       0, 0, 0, 0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0, 0, 0, 0,
-                       1, 1, 1, 1, 1, 1, 1, 1,
-                       2, 3, 4, 5, 6, 4, 3, 2]
+        self.piece_count: int = 32
+        self.fields: list[int] = [10, 11, 12, 13, 14, 12, 11, 10,
+                                9, 9, 9, 9, 9, 9, 9, 9,
+                                0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0,
+                                1, 1, 1, 1, 1, 1, 1, 1,
+                                2, 3, 4, 5, 6, 4, 3, 2]
     def __str__(self) -> str:
         ''''Return string representation of all atributes'''
-        if self.en_passant == None: temp_ep = '-'
-        else: temp_ep = trans.board_index2file_rank_string[self.en_passant]
+        if self.en_passant == None: 
+            temp_ep: str = '-'
+        else: 
+            temp_ep: str = board_index2file_rank_string[self.en_passant]
 
         return """\n\n------LAYOUT OBJECT------\n
 - FEN: {out_fen}\n
@@ -96,14 +124,14 @@ black queen: {cq}\n
 - En Passsant: {ep}\n
 - Halfmove clock: {clock}""".format(
             out_fen = self.layout2fen(),
-            f8 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[0:8]]),
-            f7 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[8:16]]),
-            f6 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[16:24]]),
-            f5 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[24:32]]),
-            f4 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[32:40]]),
-            f3 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[40:48]]),
-            f2 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[48:56]]),
-            f1 = '\t'.join([trans.number2piece_character[piece] for piece in self.fields[56:64]]),
+            f8 = '\t'.join([number2piece_character[piece] for piece in self.fields[0:8]]),
+            f7 = '\t'.join([number2piece_character[piece] for piece in self.fields[8:16]]),
+            f6 = '\t'.join([number2piece_character[piece] for piece in self.fields[16:24]]),
+            f5 = '\t'.join([number2piece_character[piece] for piece in self.fields[24:32]]),
+            f4 = '\t'.join([number2piece_character[piece] for piece in self.fields[32:40]]),
+            f3 = '\t'.join([number2piece_character[piece] for piece in self.fields[40:48]]),
+            f2 = '\t'.join([number2piece_character[piece] for piece in self.fields[48:56]]),
+            f1 = '\t'.join([number2piece_character[piece] for piece in self.fields[56:64]]),
             whose_move = "White" if self.white_moves else "Black",
             moves = self.moves_made,
             cK = self.castling[0],
@@ -113,46 +141,60 @@ black queen: {cq}\n
             ep = temp_ep,
             clock = self.clock) 
     # fen operations
-    def fen2layout(self, fen):
+    def fen2layout(self, fen: str) -> None:
         ''''Sets layout atributes to coresponding to FEN string'''
         # piece count
-        self.piece_count = func.fen2piece_count(fen)
+        self.piece_count: int = fen2piece_count(fen)
         # fields
-        self.fields = func.fen2array_of_fields(fen)
+        self.fields: list[int] = fen2array_of_fields(fen)
         # white moves
-        if fen.split(' ')[1] == 'b': self.white_moves = False
+        if fen.split(' ')[1] == 'b': 
+            self.white_moves: bool = False
         # moves made
-        self.moves_made = int(fen.split(' ')[5])
+        self.moves_made: int = int(fen.split(' ')[5])
         # castling
-        self.castling = func.fen2castling_arr(fen)
+        self.castling: list[bool] = fen2castling_arr(fen)
         # en passant
-        if fen.split(' ')[3] != '-': self.en_passant = trans.file_rank_string2board_index[fen.split(' ')[3]]
+        if fen.split(' ')[3] != '-': 
+            self.en_passant: int = file_rank_string2board_index[fen.split(' ')[3]]
         # clock
-        self.clock = int(fen.split(' ')[4])
-    def layout2fen(self):
-        '''Returns FEN notation string corresponding to layout'''
+        self.clock: int = int(fen.split(' ')[4])
+    def layout2fen(self) -> str:
+        '''Returns FEN notation string corresponding to layout atributes.'''
         # white moves
-        if self.white_moves: color = 'w'
-        else: color = 'b'
+        if self.white_moves: 
+            color: str = 'w'
+        else: 
+            color: str = 'b'
         # castling
-        cast_temp_arr = ['K', 'Q', 'k', 'q']
-        castling_characters = [cast_temp_arr[i] if self.castling[i] else '-' for i in range(4) ]
+        cast_temp_arr: list[str] = ['K', 'Q', 'k', 'q']
+        castling_characters: list[str] = [cast_temp_arr[i] if self.castling[i] else '-' for i in range(4) ]
         # en passant
-        temp_passant = '-'
-        if self.en_passant != None: temp_passant = trans.board_index2file_rank_string[self.en_passant]
+        temp_passant: str = '-'
+        if self.en_passant != None: 
+            temp_passant: str = board_index2file_rank_string[self.en_passant]
 
-        # FEN
-        fen = (func.array_of_fields2fen(self.fields) + ' '
-        + color + ' '
-        + ''.join([castling_characters[i] if self.castling[i] else '-' for i in range(4)]) + ' '
-        + temp_passant + ' '
-        + str(self.clock) + ' '
-        + str(self.moves_made))
+        # composing FEN
+        fen: str = \
+        array_of_fields2fen(self.fields) + ' ' + \
+        color + ' ' + \
+        ''.join([castling_characters[i] if self.castling[i] else '-' for i in range(4)]) + ' ' + \
+        temp_passant + ' ' + \
+        str(self.clock) + ' ' + \
+        str(self.moves_made)
 
         return fen   
-    # changing layout
-    def update(self, old_field, new_field):
-        ''''Updates all atributes based on a given move (old_field -> new_field)'''
+    # updating layout
+    def update(self, old_field: int, new_field: int) -> None:
+        '''
+        Updates all atributes based on a given move.
+
+        Arguments:
+        - old_field (int), new_field (int): made move from old_field to new_field
+
+        Note:
+        Promotion functionality not finnished.
+        '''
         old_piece = self.fields[old_field]
         new_piece = self.fields[new_field]
         # if en passant happened
@@ -162,7 +204,8 @@ black queen: {cq}\n
         else: capture_bool = False
 
         # piece_count
-        if capture_bool: self.piece_count -=1 # one piece captured
+        if capture_bool: 
+            self.piece_count -=1 # one piece captured
 
         # fields
         self.fields[new_field] = old_piece # piece from prvious field on new field
@@ -185,24 +228,41 @@ black queen: {cq}\n
             # white capturing (moves are reversed earlier)
             else: self.fields[new_field - 8] = 0
         self.en_passant = None
-        # en passant not happend
+        # en passant capture not happend
         # white pawn moved two spaces
         if old_piece == 9 and new_field - old_field == 16: self.en_passant = old_field + 8
         # black pawn moved two spaces
         if old_piece == 1 and old_field - new_field == 16: self.en_passant = old_field - 8
 
         # clock
-        if capture_bool or self.fields[old_field] == 1 or self.fields[old_field] == 9: self.clock = 0
+        if capture_bool or \
+            self.fields[old_field] == 1 or \
+            self.fields[old_field] == 9:
+            self.clock = 0
         else: self.clock += 1
 
         # Promotion
         # white
-        if old_piece == 9 and new_field > 55: self.fields[new_field] = 13
+        if old_piece == 9 and new_field > 55:
+            self.fields[new_field] = 13
+            try:
+                raise NotImplementedError("Promotion changes pawn to a queen, does not let user choose otherwise.")
+            except NotImplementedError as e:
+                import traceback
+                traceback.print_exc()
+                print(f"Handled {e}")
         # black
-        if old_piece == 1 and new_field < 8: self.fields[new_field] = 5
-    def castling_update(self, old_piece, old_field, new_field):
-        '''Part of update(), etracted for more readability'''
-        offset = old_field - new_field
+        if old_piece == 1 and new_field < 8:
+            self.fields[new_field] = 5
+            try:
+                raise NotImplementedError("Promotion changes pawn to a queen, does not let user choose otherwise.")
+            except NotImplementedError as e:
+                import traceback
+                traceback.print_exc()
+                print(f"Handled {e}")
+    def castling_update(self, old_piece: int, old_field: int, new_field: int) -> None:
+        '''Part of update() that meneges castling, etracted for more readability'''
+        offset: int = old_field - new_field
 
         # king moved
         # white king castling possibility
@@ -229,26 +289,42 @@ black queen: {cq}\n
                 self.fields[63] = 0 # old rook's field to empty
         # rook moved
         # white king's rook castling possibility     
-        if old_field == 7: self.castling[0] = False
+        if old_field == 7:
+            self.castling[0] = False
         # white queen's rook castling possibility
-        if old_field == 0: self.castling[1] = False
+        if old_field == 0:
+            self.castling[1] = False
         # black king's rook castling possibility
-        if old_field == 63: self.castling[2] = False
+        if old_field == 63:
+            self.castling[2] = False
         # black queen's rook castling possibility
-        if old_field == 56: self.castling[3] = False
-    def all_possible_moves_for_piece(self, index, with_castling_bool=True):
-        '''
-        For a given piece (index of it's field on the board) returns tuple of lists containing:
-        possible in this moment moves (indicies of ending fields), excluding move that would end with capture,
-        moves that would end with capture.
-        If with_castling_bool is set to False, methods doesn't consider castling as possible move
-        
+        if old_field == 56:
+            self.castling[3] = False
+    def all_possible_moves_for_piece(self, index: int, with_castling_bool: bool=True) -> tuple[list[int], list[int]]:
+        """
+        Calculate all possible moves for a specific piece on the board.
+
+        For the piece located at the given `index`, this method returns a tuple containing two lists:
+        - A list of indices representing possible non-capturing moves.
+        - A list of indices representing capturing moves.
+
+        If `with_castling_bool` is set to `False`, castling moves will not be considered.
+
+        Arguments:
+        - index (int): The board index (0-63) of the piece for which to calculate possible moves.
+        - with_castling_bool (bool): Whether to include castling moves in the possible moves (default is True).
+
+        Returns:
+        - tuple[list[int], list[int]]: 
+            - The first list contains indices of all valid non-capturing moves.
+            - The second list contains indices of all valid capturing moves.
+
         Process flow:
-        (exept for pawn and king)
-        - checks whoes move is it
-        - checks kind of piece
-        - uses get_moves_at_offsets() and get_moves_in_direction() to populate returned array
-        '''
+        - Checks whose move it is (white or black).
+        - Determines the type of piece at the given index.
+        - Uses helper methods (`get_moves_at_offsets`, `get_moves_in_directions`) to populate the lists of possible moves.
+        - Special handling for pawns (including en passant) and kings (including castling).
+        """
         piece = self.fields[index]
         possible_moves = []
         capturing_moves = []
@@ -370,14 +446,31 @@ black queen: {cq}\n
                 possible_moves, capturing_moves = self.get_moves_at_offsets(self.fields, index, king_move_offsets, self.white_moves)
                 
         return possible_moves, capturing_moves
-    def get_moves_in_directions(self, index, directions):
-        '''
-        For a given directions (in indexed board fields dimention)
-        and given index on the board
-        returns tuple with two lists containing:
-        possible in this moment moves (indicies of ending fields), excluding move that would end with capture,
-        moves that would end with capture.
-        '''
+    def get_moves_in_directions(self, index: int, directions: list[tuple[int, int]]) -> tuple[list[int], list[int]]:
+        """
+        Calculate all possible moves in specified directions for a piece on the board.
+
+        Given the board `index` of a piece and a list of movement `directions`, this method returns a tuple containing:
+        - A list of indices representing possible non-capturing moves.
+        - A list of indices representing capturing moves.
+
+        Arguments:
+        - index (int): The board index (0-63) of the piece for which to calculate possible moves.
+        - directions (list[tuple[int, int]]): A list of tuples representing the movement directions 
+            (e.g., [(1, 0), (0, 1)] for rook movements).
+
+        Returns:
+        - tuple[list[int], list[int]]: 
+            - The first list contains indices of all valid non-capturing moves in the given directions.
+            - The second list contains indices of all valid capturing moves in the given directions.
+
+        Process flow:
+        - For each direction, the method iteratively checks squares in that direction.
+        - If a square is empty, it is added to the possible non-capturing moves.
+        - If a square contains a piece of the opposite color, it is added to the capturing moves.
+        - The iteration in a given direction stops upon encountering a non-empty square.
+        - The method ensures that moves remain within the bounds of the board.
+        """
         possible_moves = []
         capturing_moves = []
 
@@ -410,14 +503,30 @@ black queen: {cq}\n
                     break
 
         return possible_moves, capturing_moves
-    def get_moves_at_offsets(self, index, offsets):
-        '''
-        For a given offsets (in indexed board fields dimention)
-        and given index on the board
-        returns tuple with two lists containing:
-        possible in this moment moves (indicies of ending fields), excluding move that would end with capture,
-        moves that would end with capture.
-        '''
+    def get_moves_at_offsets(self, index, offsets) -> tuple[list[int], list[int]]:
+        """
+        Calculate all possible moves based on specific offsets for a piece on the board.
+
+        Given the board `index` of a piece and a list of movement `offsets`, this method returns a tuple containing:
+        - A list of indices representing possible non-capturing moves.
+        - A list of indices representing capturing moves.
+
+        Arguments:
+        - index (int): The board index (0-63) of the piece for which to calculate possible moves.
+        - offsets (list[tuple[int, int]]): A list of tuples representing the movement offsets 
+        (e.g., [(2, 1), (1, 2)] for knight movements).
+
+        Returns:
+        - tuple[list[int], list[int]]: 
+            - The first list contains indices of all valid non-capturing moves at the given offsets.
+            - The second list contains indices of all valid capturing moves at the given offsets.
+
+        Process flow:
+        - For each offset, the method calculates the target square by adding the offset to the current piece's position.
+        - If the target square is empty, it is added to the possible non-capturing moves.
+        - If the target square contains a piece of the opposite color, it is added to the capturing moves.
+        - The method ensures that the calculated moves are within the bounds of the board.
+        """
         possible_moves = []
         possible_captures = []
 
