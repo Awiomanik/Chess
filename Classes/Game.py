@@ -7,7 +7,7 @@ Author: WK-K
 
 # Project modules
 from Classes.UI.Main_menu import Main_menu
-from Classes.UI.Gameplay import Gameplay
+from Classes.UI.Gameplay import *
 from Classes.Chess.Layout import Layout
 
 class Game():
@@ -33,7 +33,7 @@ class Game():
 
         # testing main_menu
         self.menu_ui: Main_menu = Main_menu(self.root_dir)
-        self.gameplay_ui: Gameplay = Gameplay(self.root_dir, "Developer")
+        self.gameplay_ui: AbstractGameplay = gameplay(self.root_dir, "Developer")
         action: str = self.menu_ui.display_menu()
 
         # testing gameplay

@@ -1,8 +1,20 @@
 """
-This module defines the `Gameplay` class, responsible for handling the Gameplay UI of the chess game based on the base(UI) class.
+This module defines the `Gameplay` classes, responsible for handling the Gameplay UI of the chess game based on the base(UI) class.
 
 Classes:
-    - Gameplay: Manages the display and interaction of the game, including loading assets, handling user input, and rendering the chessboard, HUD and all elements on the screen.
+    - AbstractGameplay:     Parent class for managing the display and interaction of the game, 
+                            including loading assets, handling user input, 
+                            and rendering the chessboard, HUD and all elements on the screen.
+                            It's an abstract class that is meant to be the base for the gameplay classes
+                            with different themes (different UI layouts).
+
+    - DeveloperGameplay:    Basic UI for testing functionality and UX. 
+                            It is meant to not be perfect nor pretty, but to for example
+                            display much more information then other UIs.
+
+Functions:
+    - gameplay(root_dir: str, theme: str="Developer") -> None:
+        Factory function that returns an instance of the appropriate Gameplay class based on the theme.
 
 Author: WK-K
 """
@@ -13,11 +25,9 @@ import os
 # project modules
 from Classes.UI.Base import UI_base
 
-
-class Gameplay(UI_base):
+# -- Abstract class --
+class AbstractGameplay(UI_base):
     """
-    A class to represent and manage the gameplay screen and interactions of the chess game.
-
     """
     def __init__(self, root_dir: str, theme: str="Developer") -> None:
         """
@@ -42,41 +52,6 @@ class Gameplay(UI_base):
         """
         # path to graphical elements in chosen theme
         self.theme_path: str = os.path.join(self.gfx_dir, "Gameplay", self.theme)
-
-        # CHESSBOARD GRAPHIC
-        tile: pygame.image = pygame.image.load(
-            os.path.join(self.theme_path, "ChessBoardTileWood240x240px.png"))
-        self.gfx_chessboard: pygame.Surface = pygame.Surface((1080, 1080))
-        self.gfx_chessboard.fill((102, 51, 0)) # Brown
-        for x in range(60, 1020, 240):
-            for y in range(60, 1020, 240):
-                self.gfx_chessboard.blit(tile, (x, y))
-        marks_font = pygame.font.Font(os.path.join(self.gfx_dir, "Fonts", "handdrawn.ttf"), 50)
-        # marks files (letters)
-        marks_letters=[]
-        for l in list(map(chr, range(65, 73))): 
-            marks_letters.append(marks_font.render('{}'.format(l), False, (255, 229, 204))) # light brown
-        # marks ranks (numbers)
-        marks_numbers=[]
-        for n in range(1,9):
-            marks_numbers.append(marks_font.render('{}'.format(n), False, (250, 220, 200)))
-        # blit marks onto chessboard surface
-        for i in range(8):
-            self.gfx_chessboard.blit(marks_letters[i], (i*120 + 100, 5)) # top
-            self.gfx_chessboard.blit(marks_letters[i], (i*120 + 100, 1025)) # bottom
-            # ranks are blitted in revers so they would mach
-            self.gfx_chessboard.blit(marks_numbers[7-i], (15, i*120 + 90)) # left
-            self.gfx_chessboard.blit(marks_numbers[7-i], (1035, i*120 + 90)) # right
-
-        # PIECES
-        
-
-        # INFORMATION BLOCK
-        self.gfx_info: pygame.Surface = pygame.Surface((860, 1080))
-        self.gfx_info.fill((60, 30, 0)) # dark brown
-        self.gfx_info.blit(marks_font.render("Current player:", False, (255, 229, 204)), (20, 20))
-        self.gfx_info.blit(marks_font.render("Current FEN:   ", False, (255, 229, 204)), (20, 120))
-        self.gfx_info.blit(marks_font.render("...            ", False, (255, 229, 204)), (20, 220))
         
         """# prepare option piece image
         self.rook_gfx: pygame.image = pygame.image.load(os.path.join(self.gfx_dir, "MainMenu", "rook.png"))
@@ -158,3 +133,69 @@ class Gameplay(UI_base):
                     return "Exit"
 
         return None"""
+
+# -- Subclasses --
+class DeveloperGameplay(AbstractGameplay):
+    """
+    """
+    def load_assets(self) -> None:
+        """
+        """
+        super().load_assets()
+
+        # CHESSBOARD GRAPHIC
+        tile: pygame.image = pygame.image.load(
+            os.path.join(self.theme_path, "ChessBoardTileWood240x240px.png"))
+        self.gfx_chessboard: pygame.Surface = pygame.Surface((1080, 1080))
+        self.gfx_chessboard.fill((102, 51, 0)) # Brown
+        for x in range(60, 1020, 240):
+            for y in range(60, 1020, 240):
+                self.gfx_chessboard.blit(tile, (x, y))
+        marks_font = pygame.font.Font(os.path.join(self.gfx_dir, "Fonts", "handdrawn.ttf"), 50)
+        # marks files (letters)
+        marks_letters=[]
+        for l in list(map(chr, range(65, 73))): 
+            marks_letters.append(marks_font.render('{}'.format(l), False, (255, 229, 204))) # light brown
+        # marks ranks (numbers)
+        marks_numbers=[]
+        for n in range(1,9):
+            marks_numbers.append(marks_font.render('{}'.format(n), False, (250, 220, 200)))
+        # blit marks onto chessboard surface
+        for i in range(8):
+            self.gfx_chessboard.blit(marks_letters[i], (i*120 + 100, 5)) # top
+            self.gfx_chessboard.blit(marks_letters[i], (i*120 + 100, 1025)) # bottom
+            # ranks are blitted in revers so they would mach
+            self.gfx_chessboard.blit(marks_numbers[7-i], (15, i*120 + 90)) # left
+            self.gfx_chessboard.blit(marks_numbers[7-i], (1035, i*120 + 90)) # right
+
+        # PIECES
+        
+        
+
+        # INFORMATION BLOCK
+        self.gfx_info: pygame.Surface = pygame.Surface((860, 1080))
+        self.gfx_info.fill((60, 30, 0)) # dark brown
+        self.gfx_info.blit(marks_font.render("Current player:", False, (255, 229, 204)), (20, 20))
+        self.gfx_info.blit(marks_font.render("Current FEN:   ", False, (255, 229, 204)), (20, 120))
+        self.gfx_info.blit(marks_font.render("...            ", False, (255, 229, 204)), (20, 220))
+
+# -- Factory function --
+def gameplay(root_dir: str, theme: str="Developer") -> AbstractGameplay:
+    """
+    Factory function that returns an instance of the appropriate Gameplay class based on the theme.
+
+    Parameters:
+    - theme: str - The graphical theme in which the game is displayed.
+    - root_dir: str - The root directory of the project for easy relative path operations.
+
+    Returns:
+    - An instance of a class derived from AbstractGameplay.
+
+    Raises:
+    - ValueError - When passed theme parameter is not assosiated with any class.
+    """
+    if theme == "Developer":
+        return DeveloperGameplay(root_dir=root_dir, theme=theme)
+    # Implement other class choices here
+    else:
+        raise ValueError(f"Unknown theme: {theme}")

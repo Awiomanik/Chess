@@ -111,10 +111,3 @@ class InputStack:
             num += 1
         return representation
 
-
-
-
-
-
-
-
