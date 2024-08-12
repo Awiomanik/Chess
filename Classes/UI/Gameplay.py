@@ -22,11 +22,13 @@ Author: WK-K
 # standard modules
 import pygame
 import os
+from abc import ABC, abstractmethod
 # project modules
 from Classes.UI.Base import UI_base
+from Classes.Chess.Layout import Layout
 
 # -- Abstract class --
-class AbstractGameplay(UI_base):
+class AbstractGameplay(UI_base, ABC):
     """
     """
     def __init__(self, root_dir: str, theme: str="Developer") -> None:
@@ -39,109 +41,76 @@ class AbstractGameplay(UI_base):
         """
         super().__init__(root_dir)
         self.theme: str = theme
+        self.set_parameters()
         self.load_assets()
 
+    @abstractmethod
+    def set_parameters(self) -> None:
+        """
+        This method sets atributes corresponding to positioning of UI elements for a given theme.
+        
+        Must be implemented by subclasses
+        """
+        pass
+
+    @abstractmethod
     def load_assets(self) -> None:
         """
-        Load the necessary graphical assets for the gameplay screen and prepare the UI elements.
+        Abstract method to load the necessary graphical assets for the gameplay screen
+        and prepare the UI elements.
 
-        This method loads the...
-
-        Grphical themes include: 
-        - `Developer`
+        Must be implemented by subclasses.
         """
-        # path to graphical elements in chosen theme
-        self.theme_path: str = os.path.join(self.gfx_dir, "Gameplay", self.theme)
-        
-        """# prepare option piece image
-        self.rook_gfx: pygame.image = pygame.image.load(os.path.join(self.gfx_dir, "MainMenu", "rook.png"))
+        pass
 
-        # prepare text
-        self.font = pygame.font.Font(os.path.join(self.gfx_dir, "Fonts", "handdrawn.ttf"), 100)
-
-        self.title = self.font.render("The  Chess  Game", False, (225, 225, 225))
-        self.title_coord = ((1920 - self.title.get_rect()[2])//2, 130)
-
-        self.options = []
-        for opt in ["Play", "Load", "Exit"]:
-            self.options.append(self.font.render(opt, False, (225, 225, 225)))
-        self.current_option = 0
-
-        # semi-transparent rectangle
-        self.temp_surface = pygame.Surface((840, 720), pygame.SRCALPHA)
-        pygame.draw.rect(self.temp_surface, (0, 0, 0, 75), (0, 0, 840, 720), border_radius=20)"""
-
-    def gameplay(self) -> None:
+    @abstractmethod
+    def gameplay(self, layout: Layout) -> str:
         """
-        Display the gameplay screen and handle user input until 
-        user goes back to the main menu or the window is closed.
+        Abstract method to display the gameplay screen and handle user input.
 
-        This method enters a loop where it continuously checks for user input,
-        updates the UI elements based on that input
-        and renders the updated screen.
+        Must be implemented by subclasses.
         """
-        while True:
-
-            # get and menege user input
-            # Whether the window was closed
-            if self.get_input():
-                return "Terminated"
-            # Wheter any interaction happened
-            if self.event_callbacks.stack:
-                self.handle_input()
-
-            # prepare elements to be displayed\
-            # (main menu has 16 columns)
-            # background
-            self.render_queue.append((self.gfx_chessboard, (0, 0)))
-            self.render_queue.append((self.gfx_info, (1080, 0)))
-
-            # Update UI
-            self.update()
+        pass
 
     def handle_input(self) -> str | None:
-        raise NotImplementedError()
         """
-        Handle the user input to navigate through the menu options or select an option.
-
-        This method checks the last input event in the stack and updates the current menu option 
-        or returns the selected action.
+        Handle the user input by popping the last element of input stack and adjusting the atributes.
 
         Returns:
-        - str | None: The action based on the selected option ("Play", "Load", "Exit"), or None if no action is taken.
-        
+        - str | None: The action based on the input, or None if no action is taken.
+        """
         event = self.event_callbacks.pop()
 
         # keyboard
         if event.event_type == "key":
-            # adjust current option
-            if event.data == "DOWN":
-                        self.current_option = (self.current_option + 1) % len(self.options)
-            if event.data == "UP":
-                        self.current_option = (self.current_option - 1) % len(self.options)
-
-            # handle chosen option
+            #if event.data == "DOWN":
+            #if event.data == "UP":
             if event.data == "ENTER":
-                # Play
-                if self.current_option == 0:
-                     return "Play"
-                # Load
-                if self.current_option == 1: 
-                     raise NotImplementedError()
-                # Exit
-                if self.current_option == 2:
-                    return "Exit"
+                raise NotImplementedError()
+        
+        # mouse position
+        
+        
+        # mouse click
+          
 
-        return None"""
+        return None
 
 # -- Subclasses --
 class DeveloperGameplay(AbstractGameplay):
     """
     """
+    def set_parameters(self) -> None:
+        """Sets atributes corresponding to positioning of the UI elements."""
+        self.param_board_size: tuple[int, int] = (960, 960)
+        self.param_board_pos: tuple[int, int] = (60, 60)
+        self.param_tile_size: tuple[int, int] = (120, 120)
+
     def load_assets(self) -> None:
         """
         """
-        super().load_assets()
+        # path to graphical elements in chosen theme
+        self.theme_path: str = os.path.join(self.gfx_dir, "Gameplay", self.theme)
 
         # CHESSBOARD GRAPHIC
         tile: pygame.image = pygame.image.load(
@@ -167,10 +136,22 @@ class DeveloperGameplay(AbstractGameplay):
             # ranks are blitted in revers so they would mach
             self.gfx_chessboard.blit(marks_numbers[7-i], (15, i*120 + 90)) # left
             self.gfx_chessboard.blit(marks_numbers[7-i], (1035, i*120 + 90)) # right
-
+                
+        # MOUSE RECTANGLES
+        # hover rectangle
+        self.gfx_mouse_hover_rect: pygame.Surface = pygame.Surface(self.param_tile_size, pygame.SRCALPHA)
+        self.gfx_mouse_hover_rect.fill((0, 0, 0, 0))
+        pygame.draw.rect(self.gfx_mouse_hover_rect, 
+                         (100, 50, 0, 150), # dark brown with 150/255 transparency
+                         self.gfx_mouse_hover_rect.get_rect())
+        
         # PIECES
-        
-        
+        self.gfx_pieces = {}
+        for i, piece in enumerate(zip(["pawn", "rook", "knight", "bishop", "queen", "king"],
+                                ["pawnb", "rookb", "knightb", "bishopb", "queenb", "kingb"]), 1):
+            for j in [0, 1]:
+                self.gfx_pieces[i + j * 8] = pygame.image.load(
+                    os.path.join(self.theme_path, "Pieces", piece[j] + ".png"))
 
         # INFORMATION BLOCK
         self.gfx_info: pygame.Surface = pygame.Surface((860, 1080))
@@ -178,9 +159,58 @@ class DeveloperGameplay(AbstractGameplay):
         self.gfx_info.blit(marks_font.render("Current player:", False, (255, 229, 204)), (20, 20))
         self.gfx_info.blit(marks_font.render("Current FEN:   ", False, (255, 229, 204)), (20, 120))
         self.gfx_info.blit(marks_font.render("...            ", False, (255, 229, 204)), (20, 220))
+    
+    def gameplay(self, layout: Layout) -> str:
+        """
+        Display the gameplay screen and handle user input until 
+        user goes back to the main menu or the window is closed.
+
+        This method enters a loop where it continuously checks for user input,
+        updates the UI elements based on that input
+        and renders the updated screen.
+        """
+        while True:
+
+            # get and menege user input
+            # Whether the window was closed
+            if self.get_input():
+                return "Terminated"
+            # Wheter any interaction happened
+            if self.event_callbacks.stack:
+                self.handle_input()
+
+            # prepare elements to be displayed
+            # background
+            self.render_queue.append((self.gfx_chessboard, (0, 0)))
+            self.render_queue.append((self.gfx_info, (1080, 0)))
+            # pieces
+            for i, piece in enumerate(layout.fields):
+                if piece:
+                    self.render_queue.append((self.gfx_pieces[piece], 
+                                                (80 + 120 * (i % 8), 80 + 120 * (i//8))))
+                                                # 80 - board shift on screen
+                                                # 120 - tile size
+                                                # % or // - ranks and files
+            # mouse hovering rectangle
+            x, y = self.mouse_pos[0] - 60, self.mouse_pos[1] - 60
+            if x < self.param_board_size[0] and y < self.param_board_size[1]:
+                for i in range(8): 
+                    for j in range(8):
+                        tx, ty = self.param_tile_size
+                        if i * tx < x < (i + 1) * tx and \
+                           j * ty < y < (j + 1) * ty:
+                            x, y = i * tx + 60, j * ty + 60
+                            break
+                self.render_queue.append((self.gfx_mouse_hover_rect, (x, y)))
+
+            
+            # Update UI
+            self.update()
+        
+        return "Game ended"
 
 # -- Factory function --
-def gameplay(root_dir: str, theme: str="Developer") -> AbstractGameplay:
+def gameplay_factory(root_dir: str, theme: str="Developer") -> AbstractGameplay:
     """
     Factory function that returns an instance of the appropriate Gameplay class based on the theme.
 

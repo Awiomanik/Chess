@@ -33,11 +33,11 @@ class Game():
 
         # testing main_menu
         self.menu_ui: Main_menu = Main_menu(self.root_dir)
-        self.gameplay_ui: AbstractGameplay = gameplay(self.root_dir, "Developer")
+        self.gameplay_ui: AbstractGameplay = gameplay_factory(self.root_dir, "Developer")
         action: str = self.menu_ui.display_menu()
 
         # testing gameplay
         if action == "Play":
             layout = Layout()
             print('\nStaring layoutout: ', layout, '\n')
-            self.gameplay_ui.gameplay()
+            self.gameplay_ui.gameplay(layout)
