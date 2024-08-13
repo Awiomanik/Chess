@@ -110,6 +110,7 @@ class AbstractGameplay(UI_base, ABC):
 class DeveloperGameplay(AbstractGameplay):
     """
     """
+    # Constructors
     def set_parameters(self) -> None:
         """Sets atributes corresponding to positioning of the UI elements."""
         self.param_board_size: tuple[int, int] = (960, 960)
@@ -122,7 +123,6 @@ class DeveloperGameplay(AbstractGameplay):
             "Text": (255, 215, 0), # Golden
             "Mouse_hover": (255, 215, 0, 150) # Gold semi-transparent
         }
-
     def load_assets(self) -> None:
         """
         """
@@ -176,19 +176,21 @@ class DeveloperGameplay(AbstractGameplay):
         self.gfx_info.blit(marks_font.render("Current player:", False, self.colors["Info_text"]), (20, 20))
         self.gfx_info.blit(marks_font.render("Current FEN:   ", False, self.colors["Info_text"]), (20, 120))
         self.gfx_info.blit(marks_font.render("...            ", False, self.colors["Info_text"]), (20, 220))
-    
+    # Utils
     def mouse_hovering_rectangle(self) -> None:
         """
         """
         x, y = self.mouse_pos[0] - 60, self.mouse_pos[1] - 60
-        if 0 < x < self.param_board_size[0] and 0 < y < self.param_board_size[1]:
+        if 0 < x < self.param_board_size[0] and \
+           0 < y < self.param_board_size[1]:
             for i in range(8): 
                 for j in range(8):
                     tx, ty = self.param_tile_size
                     if i * tx < x < (i + 1) * tx and \
                         j * ty < y < (j + 1) * ty:
                         return i * tx + 60, j * ty + 60
-
+        else:
+            return None
     def board_coords2field_index(self) -> int:
         """Returns index in 64 int array of fields on board (60-1020, 60-1020) from board mouse coordinates."""
         x, y = self.mouse_pos[0] - 60, self.mouse_pos[1] - 60
@@ -198,57 +200,6 @@ class DeveloperGameplay(AbstractGameplay):
                 if i * 120 < x < (i + 1) * 120 and \
                    j * 100 < y < (j + 1) * 100: 
                     return i + j * 8
-
-    def gameplay(self, layout: Layout) -> str:
-        """
-        Display the gameplay screen and handle user input until 
-        user goes back to the main menu or the window is closed.
-
-        This method enters a loop where it continuously checks for user input,
-        updates the UI elements based on that input
-        and renders the updated screen.
-        """
-        while True:
-
-            # get and menege user input
-            # Whether the window was closed
-            if self.get_input():
-                return "Terminated"
-            # Wheter any interaction happened
-            if self.event_callbacks.stack:
-                self.handle_input()
-            # Whether mouse was clicked
-            if self.mouse_clicked:
-                self.mouse_down_handling(layout)
-                self.mouse_clicked = False
-
-            # prepare elements to be displayed
-            # background
-            self.render_queue.append((self.gfx_chessboard, (0, 0)))
-            self.render_queue.append((self.gfx_info, (1080, 0)))
-            # mouse hovering rectangle
-            self.render_queue.append((self.gfx_mouse_hover_rect, self.mouse_hovering_rectangle()))
-
-            # pieces
-            for i, piece in enumerate(layout.fields):
-                if piece:
-                    self.render_queue.append((self.gfx_pieces[piece], 
-                                                (80 + 120 * (i % 8), 80 + 120 * (i//8))))
-                                                # 80 - board shift on screen
-                                                # 120 - tile size
-                                                # % or // - ranks and files
-                                            
-            # grabbed piece
-            #if self.grabbed_piece_field:
-             #   self.render_queue.append((self.gfx_grabbed_piece, 
-              #                          (self.mouse_pos[0] - 25, self.mouse_pos[1] - 25)))
-
-
-            # Update UI
-            self.update()
-        
-        return "Game ended"
-
     def mouse_down_handling(self, layout: Layout) -> None:
         """
         - Checks if the mouse click occurred within the chessboard boundaries.
@@ -307,7 +258,57 @@ class DeveloperGameplay(AbstractGameplay):
                 if clicked_piece != 0 and \
                     (layout.white_moves == bool(clicked_piece >> 3 & 1)): 
                     grabb_new_piece()
+    # Main loop
+    def gameplay(self, layout: Layout) -> str:
+        """
+        Display the gameplay screen and handle user input until 
+        user goes back to the main menu or the window is closed.
 
+        This method enters a loop where it continuously checks for user input,
+        updates the UI elements based on that input
+        and renders the updated screen.
+        """
+        while True:
+
+            # get and menege user input
+            # Whether the window was closed
+            if self.get_input():
+                return "Terminated"
+            # Wheter any interaction happened
+            if self.event_callbacks.stack:
+                self.handle_input()
+            # Whether mouse was clicked
+            if self.mouse_clicked:
+                self.mouse_down_handling(layout)
+                self.mouse_clicked = False
+
+            # prepare elements to be displayed
+            # background
+            self.render_queue.append((self.gfx_chessboard, (0, 0)))
+            self.render_queue.append((self.gfx_info, (1080, 0)))
+            # mouse hovering rectangle
+            if (mhr_coord := self.mouse_hovering_rectangle()):
+                self.render_queue.append((self.gfx_mouse_hover_rect, mhr_coord))
+
+            # pieces
+            for i, piece in enumerate(layout.fields):
+                if piece:
+                    self.render_queue.append((self.gfx_pieces[piece], 
+                                                (80 + 120 * (i % 8), 80 + 120 * (i//8))))
+                                                # 80 - board shift on screen
+                                                # 120 - tile size
+                                                # % or // - ranks and files
+                                            
+            # grabbed piece
+            #if self.grabbed_piece_field:
+                #self.render_queue.append((self.gfx_grabbed_piece, 
+                #                        (self.mouse_pos[0] - 25, self.mouse_pos[1] - 25)))
+
+
+            # Update UI
+            self.update()
+        
+        return "Game ended"
 
 # -- Factory function --
 def gameplay_factory(root_dir: str, theme: str="Developer") -> AbstractGameplay:

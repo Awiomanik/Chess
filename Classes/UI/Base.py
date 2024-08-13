@@ -26,7 +26,12 @@ class UI_base():
 
         Instance:
             root_dir (str): Path to the main catalogue of the repository for relative path operations.
-            dfx_dir (str): Path to the folder with graphical assets.
+            gfx_dir (str): Path to the folder with graphical assets.
+            mouse_pos (tuple[int, int]): Current mouse position in pixels.
+            dirty_rectangles (list[tuple[pygame.Rect, list[pygame.Surface]]]): 
+                List of dirty rectangls to optimize rendering.
+                Every reectangle has list of surfacesto be blitted upon mask.
+            background_mask (pygame.Surface): Mask for a non-changeble background to fill dirty rectangles.
             pygame:
                 screen (pygmae.Surface): The main game display surface.
                 clock (pygame.time.Clock): variable for menaging frame rate.
@@ -63,11 +68,14 @@ class UI_base():
         pygame.K_RIGHT: "RIGHT",
         pygame.K_RETURN: "ENTER",
         }
-        self.mouse_pos = pygame.mouse.get_pos()
-        self.render_queue = []
-        
-        # moves
-        self.grabbed_piece: int | None = None 
+        self.mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
+        self.dirty_rectangles: list[tuple[pygame.Rect, list[pygame.Surface]]] = []
+        """
+        List of dirty rectangls to optimize rendering.
+        Every reectangle has list of surfacesto be blitted upon mask.
+        """
+        self.background_mask: pygame.Surface = None
+        """Mask for a non-changeble background to fill dirty rectangles"""
         
     def window_set_up(self, window_caption: str = "The Szaszki Game") -> None:
         """
@@ -91,11 +99,36 @@ class UI_base():
 
     # Updating UI state
     def update(self) -> None:
-        # Blit all graphics
-        for surface, coords in self.render_queue:
-            self.screen.blit(surface, coords)
+        """
+        Updates the screen by redrawing only the dirty rectangles.
+        Uses memoization for mask subsurfaces.
+
+        Note:
+        In the future, as the program grows this might be the function
+        that consumes sizable amount of memory due to memoization of `pygame.Surface` objects.
+        Might need adjustment if memory usage will be a concern.
+        """
+        # memoization
+        memo: dict[tuple[int, int, int, int], pygame.Surface] = {}
+        # loop through dirty rectangles
+        for rect, surfaces in self.dirty_rectangles:
+            # check memory
+            key = tuple(rect)
+            if key in memo:
+                submask: pygame.Surface = memo[key]
+            else:
+                submask: pygame.Surface = self.background_mask.subsurface(rect)
+                memo[key] = submask
+
+            # blit mask and updates
+            self.screen.blit(submask, rect)
+            for surface in surfaces:
+                self.screen.blit(surface, rect)
+                
         # Update pygame and clock every FPS'th of a secound
-        pygame.display.flip()
+        # update() can redraw only 'dirty rectangles' and not tot the whole screen
+        # that can optimize rendering of the game
+        pygame.display.update()
         self.clock.tick(self.FPS)
 
     def get_input(self) -> bool:
