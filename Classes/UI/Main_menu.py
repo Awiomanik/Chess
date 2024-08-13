@@ -1,8 +1,11 @@
 """
-This module defines the `Main_menu` class, responsible for handling the main menu UI of the chess game based on the base(UI) class.
+This module defines the `Main_menu` class, which handles the main menu UI of the chess game. 
+It extends the `UI_base` class to manage the display, user interaction, and asset handling for the menu.
 
 Classes:
-    - Main_menu: Manages the display and interaction of the main menu, including loading assets, handling user input, and rendering the menu screen.
+    - Main_menu: 
+        Manages the display, asset loading, and interaction of the main menu, 
+        including rendering UI elements and handling user input.
 
 Author: WK-K
 """
@@ -19,30 +22,31 @@ class Main_menu(UI_base):
     A class to represent and manage the main menu of the chess game.
 
     Attributes:
-    - gfx_dir: str - The directory path to graphical assets.
-    - self.dirty_rectangles: list[pygame.Rect] - List of dirty rectangls to optimize rendering.
-    - main_menu_background: pygame.Surface - The surface representing the main menu background.
-    - rook_gfx: pygame.image - The image of a rook piece used as a cursor in the menu.
-    - font: pygame.font.Font - The font used for rendering text in the menu.
-    - title: pygame.Surface - The rendered title of the game.
-    - title_coord: tuple(int, int) - The coordinates for placing the title on the screen.
-    - options: list[pygame.Surface] - A list of rendered options (Play, Load, Exit) in the menu.
-    - current_option: int - Index of the currently selected menu option.
-    - temp_surface: pygame.Surface - A semi-transparent rectangle for visual effects in the menu.
-    - render_queue: list[tuple(pygame.Surface, tuple(int, int))] - A list of elements to be displayed on the screen.
+        - gfx_dir (str): The directory path to graphical assets.
+        - dirty_rectangles (list[tuple[pygame.Rect, list[pygame.Surface]]]): List of dirty rectangles to optimize rendering.
+        - main_menu_background (pygame.Surface): The surface representing the main menu background.
+        - rook_gfx (pygame.Surface): The image of a rook piece used as a cursor in the menu.
+        - font (pygame.font.Font): The font used for rendering text in the menu.
+        - title (pygame.Surface): The rendered title of the game.
+        - title_coord (tuple[int, int]): The coordinates for placing the title on the screen.
+        - options (list[pygame.Surface]): A list of rendered option texts (Play, Load, Exit) in the menu.
+        - current_option (int): Index of the currently selected menu option.
+        - semi_transparent_surface (pygame.Surface): A semi-transparent rectangle for visual effects in the menu.
+        - option_piece_rects (list[pygame.Rect]): List of rectangles that encapsulate the option piece.
 
     Methods:
-    - __init__(root_dir: str) -> None: Initialize the main menu by loading assets and preparing the UI elements.
-    - load_assets() -> None: Load the necessary graphical assets for the main menu and prepare the UI elements.
-    - display_menu() -> str: Display the main menu and handle user input until a menu option is selected or the window is closed.
-    - handle_input() -> str | None: Handle the user input to navigate through the menu options or select an option.
+        - __init__(root_dir: str) -> None: Initialize the main menu by loading assets and preparing the UI elements.
+        - load_assets() -> None: Load the necessary graphical assets for the main menu and prepare the UI elements.
+        - display_menu() -> str | None: Display the main menu and handle user input until a menu option is selected or the window is closed.
+        - screen_init() -> None: Render the initial screen of the main menu.
+        - handle_input() -> str | None: Handle user input to navigate through the menu options or select an option.
     """
     def __init__(self, root_dir: str) -> None:
         """
-        Initialize the main menu by loading assets, preparing the UI elements and setting parameters.
+        Initialize the main menu by loading assets and preparing the UI elements.
 
         Parameters:
-        - root_dir: str - The root directory of the project where assets are located.
+            - root_dir (str): The root directory of the project for easy relative path operations.
         """
         super().__init__(root_dir)
         self.load_assets()
@@ -52,8 +56,8 @@ class Main_menu(UI_base):
         Load the necessary graphical assets for the main menu and prepare the UI elements.
 
         This method loads the background image, option piece image, and font for the title and menu options. 
-        It also prepares a semi-transparent rectangle for visual effects.
-        It stores images as pygame.Surfaces properly converted for optimal rendering.
+        It also prepares a semi-transparent rectangle for visual effects and stores these elements as 
+        `pygame.Surface` objects for optimal rendering.
         """
         options_txt = ["Play", "Load", "Exit"]
 
@@ -97,14 +101,17 @@ class Main_menu(UI_base):
         """
         Display the main menu and handle user input until a menu option is selected or the window is closed.
 
-        This method enters a loop where it continuously checks for user input, updates the UI elements based 
-        on that input, and renders the updated menu on the screen.
-
-        Note: main menu has 16 columns
+        This method enters a loop where it continuously checks for user input, 
+        updates the UI elements based on that input, 
+        and renders the updated menu on the screen.
 
         Returns:
-        - str | None: The action to be taken based on the selected menu option ("Play", "Load", "Exit", or "Terminated"), 
-                      None if no option selected yet.
+            - str | None: 
+                The action to be taken based on the selected menu option 
+                ("Play", "Load", "Exit", or "Terminated"), or None if no option is selected yet.
+
+        Note:
+            - The main menu layout includes 16 columns..
         """
         self.screen_init()
 
@@ -125,7 +132,12 @@ class Main_menu(UI_base):
             self.update()
 
     def screen_init(self) -> None:
-        """Renders the initial screen of main menu"""
+        """
+        Renders the initial screen of the main menu 
+        by drawing the background, title, options, and other UI elements.
+
+        This method also saves the current screen as a mask for future rendering optimizations.
+        """
         self.screen.blit(self.main_menu_background, (0, 0))
         self.screen.blit(self.semi_transparent_surface, (540, 60))
         self.screen.blit(self.title, self.title_coord)
@@ -142,13 +154,16 @@ class Main_menu(UI_base):
         
     def handle_input(self) -> str | None:
         """
-        Handle the user input to navigate through the menu options or select an option.
+        Handle user input to navigate through the menu options or select an option.
 
-        This method checks the last input event in the stack and updates the current menu option 
-        or returns the selected action.
+        This method processes the most recent input event, 
+        updates the current menu option based on user input (e.g., arrow keys), 
+        and handles the selection of an option (e.g., Enter key).
 
         Returns:
-        - str | None: The action based on the selected option ("Play", "Load", "Exit"), or None if no action is taken.
+            - str | None: 
+                The action based on the selected option 
+                ("Play", "Load", "Exit"), or None if no action is taken.
         """
         event = self.event_callbacks.pop()
 

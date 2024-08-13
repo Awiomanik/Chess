@@ -1,9 +1,9 @@
 """
-UI classes for menaging interaction with user.
-Takes care of displaying window, playing audio and collecting user input.
+UI classes for managing user interaction, including:
+displaying the game window, handling audio, and collecting user input.
 
-Additional info:
-    The game always runs in full-screen mode with constant resolution of 1920 x 1080 pixels.
+Additional Info:
+    The game runs in full-screen mode with a constant resolution of 1920 x 1080 pixels.
 
 Author: WK-K
 """
@@ -16,28 +16,70 @@ from Classes.UI.Common import InputStack
 
 class UI_base():
     """
-    Initializes game window and menages user interaction.
-    The game always runs in full-screen mode with constant resolution of 1920 x 1080 pixels.
+    Manages the game window and user interaction for a full-screen game with a resolution of 1920 x 1080 pixels.
 
-    Atributes:
-        Class:
+    Attributes:
+        Class Attributes:
             FPS (int): The frame rate of the game.
-            RESOLUTION (tuple[int, int]): The resolution of the game window.
+            RES (tuple[int, int]): The resolution of the game window (Full-HD).
 
-        Instance:
-            root_dir (str): Path to the main catalogue of the repository for relative path operations.
-            gfx_dir (str): Path to the folder with graphical assets.
+        Instance Attributes:
+            root_dir (str): Path to the main directory of the project 
+                            for asset loading and other operations.
+            gfx_dir (str): Path to the directory containing graphical assets.
             mouse_pos (tuple[int, int]): Current mouse position in pixels.
-            dirty_rectangles (list[tuple[pygame.Rect, list[pygame.Surface]]]): 
-                List of dirty rectangls to optimize rendering.
-                Every reectangle has list of surfacesto be blitted upon mask.
-            background_mask (pygame.Surface): Mask for a non-changeble background to fill dirty rectangles.
-            pygame:
-                screen (pygmae.Surface): The main game display surface.
-                clock (pygame.time.Clock): variable for menaging frame rate.
+            dirty_rectangles (list[tuple[pygame.Rect, list[pygame.Surface]]]):
+                List of dirty rectangles to optimize rendering. 
+                Each rectangle is associated with a list of surfaces to be blitted.
+            background_mask (pygame.Surface): Mask for the static background used to fill dirty rectangles.
+            screen (pygame.Surface): The main game display surface.
+            clock (pygame.time.Clock): Clock for managing the frame rate.
+            event_callbacks (InputStack): Stack for managing and processing user input events.
+            key_map (dict[int, str]): Dictionary mapping key constants 
+                                      to string representations of key actions.
 
     Methods:
-        window_set_up() -> None: Initializes pygame and sets up the game window.
+        __init__(root_dir: str) -> None:
+            Initializes the game window and sets up essential paths and input handling.
+            
+            Arguments:
+                root_dir (str): 
+                    Path to the main directory of the project for asset loading and other operations.
+
+        window_set_up(window_caption: str = "The Szaszki Game") -> None:
+            Initializes pygame and configures the game window for full-screen mode.
+            
+            Arguments:
+                window_caption (str): 
+                    The title to display on the game window. Defaults to "The Szaszki Game".
+
+        update() -> None:
+            Updates the screen by redrawing only the dirty rectangles using memoization for mask subsurfaces.
+
+            Note:
+                As the program grows, this method may consume significant memory 
+                due to memoization of `pygame.Surface` objects.
+                Adjustments may be needed if memory usage becomes a concern.
+
+        get_input() -> bool:
+            Processes user input events and updates the event stack.
+
+            Returns:
+                - bool: 
+                    Returns True if a quit event (window close) is detected; 
+                    otherwise, returns False to continue the game loop.
+
+        intro() -> None:
+            Placeholder method for introductory actions or animations.
+
+            This method should be implemented in subclasses to provide specific 
+            introductory actions or animations.
+
+        outro() -> None:
+            Placeholder method for concluding actions or animations.
+
+            This method should be implemented in subclasses to provide specific 
+            concluding actions or animations.
     """
 
     # Class atributes
@@ -47,10 +89,10 @@ class UI_base():
     # Constructor methods
     def __init__(self, root_dir) -> None:
         """
-        Sets up the game window.
-        
+        Initializes the game window and sets up essential paths and input handling.
+
         Arguments:
-            root_dir (str): Path to the main catalogue of the repository for relative path operations.
+            root_dir (str): Path to the main directory of the project for asset loading and other operations.
         """
         # set up window and pygame
         self.window_set_up()
@@ -85,7 +127,7 @@ class UI_base():
         - initializing screen surface and clock variables
         
         Arguments:
-            - window_caption (str): Name for the game window.
+            - window_caption (str): Name for the game window (Defaults to `The Szaszki Game).
         """
 
         # initialize Pygame
@@ -133,24 +175,22 @@ class UI_base():
 
     def get_input(self) -> bool:
         """
-        Handle user input events and update the event stack.
+        Processes user input events and updates the event stack.
 
-        This method processes all pending input events, including mouse movements, 
-        mouse button clicks, and key presses. It updates the internal event stack 
-        with the detected events and handles specific actions such as closing the window.
+        This method handles all pending input events, including mouse movements, clicks, and key presses. It updates the internal event stack and processes specific actions such as closing the window.
 
         Returns:
-        - bool: Returns True if a quit event (closing the window) is detected, otherwise returns False to continue the game loop.
+        - bool: Returns True if a quit event (window close) is detected; otherwise, returns False to continue the game loop.
 
         Events Handled:
-        - pygame.QUIT: Triggers when the user attempts to close the window.
-        - pygame.MOUSEMOTION: Tracks the current position of the mouse cursor.
-        - pygame.MOUSEBUTTONDOWN: Records mouse click events and stores the cursor position in the event stack.
-        - pygame.KEYDOWN: Detects key presses and stores the key information (either as a unicode character or mapped key) in the event stack.
+        - pygame.QUIT: When the user attempts to close the window.
+        - pygame.MOUSEMOTION: Updates the current position of the mouse cursor.
+        - pygame.MOUSEBUTTONDOWN: Records mouse click events and stores cursor position.
+        - pygame.KEYDOWN: Detects key presses, storing either a mapped key or unicode character.
 
         Key Handling:
-        - If the key pressed is not in special keys dict (`self.key_map`) character, it is stored directly.
-        - If the key pressed is a special key (e.g., arrow keys), it is mapped to a specific string using `self.key_map`.
+        - Keys not in self.key_map are stored directly.
+        - Special keys (e.g., arrow keys) are mapped using self.key_map.
         """
         for event in pygame.event.get():
 
@@ -174,20 +214,11 @@ class UI_base():
 
     # Additional 
     def intro(self) -> None:
+        """Placeholder method for concluding setup or animations."""
         raise NotImplementedError()
 
     def outro(self) -> None:
+        """Placeholder method for concluding setup or animations."""
         raise NotImplementedError()
     
    
-
-        
-
-
-
-
-
-
-
-
-
