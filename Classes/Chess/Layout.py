@@ -197,11 +197,12 @@ black queen: {cq}\n
         '''
         old_piece = self.fields[old_field]
         new_piece = self.fields[new_field]
+
         # if en passant happened
-        en_passant_happened = (new_field == self.en_passant and (old_piece == 9 or old_piece == 1))
+        en_passant_happened = new_field == self.en_passant and old_piece in (1, 9)
+
         # if capture happend
-        if new_piece != 0 or en_passant_happened: capture_bool = True
-        else: capture_bool = False
+        capture_bool = new_piece != 0 or en_passant_happened
 
         # piece_count
         if capture_bool: 
@@ -224,22 +225,22 @@ black queen: {cq}\n
         # en passant capture happend
         if en_passant_happened:
             # black capturing (moves are reveresed earlier)
-            if self.white_moves: self.fields[new_field + 8] = 0
+            if self.white_moves: 
+                self.fields[new_field + 8] = 0
             # white capturing (moves are reversed earlier)
-            else: self.fields[new_field - 8] = 0
+            else: 
+                self.fields[new_field - 8] = 0
         self.en_passant = None
         # en passant capture not happend
         # white pawn moved two spaces
-        if old_piece == 9 and new_field - old_field == 16: self.en_passant = old_field + 8
+        if old_piece == 9 and new_field - old_field == 16: 
+            self.en_passant = old_field + 8
         # black pawn moved two spaces
-        if old_piece == 1 and old_field - new_field == 16: self.en_passant = old_field - 8
+        if old_piece == 1 and old_field - new_field == 16: 
+            self.en_passant = old_field - 8
 
         # clock
-        if capture_bool or \
-            self.fields[old_field] == 1 or \
-            self.fields[old_field] == 9:
-            self.clock = 0
-        else: self.clock += 1
+        self.clock = 0 if capture_bool or old_piece in (1, 9) else self.clock + 1
 
         # Promotion
         # white
@@ -300,152 +301,146 @@ black queen: {cq}\n
         # black queen's rook castling possibility
         if old_field == 56:
             self.castling[3] = False
-    def all_possible_moves_for_piece(self, index: int, with_castling_bool: bool=True) -> tuple[list[int], list[int]]:
+    def all_possible_moves_for_piece(self, 
+                                     index: int, 
+                                     with_castling_bool: bool=True) -> tuple[list[int], list[int]]:
         """
-        Calculate all possible moves for a specific piece on the board.
+        Compute all valid moves for a specific piece on the board.
 
-        For the piece located at the given `index`, this method returns a tuple containing two lists:
-        - A list of indices representing possible non-capturing moves.
-        - A list of indices representing capturing moves.
+        This method calculates the possible moves for the piece located at the specified `index` on the board. 
+        It returns a tuple containing two lists:
+        
+        - A list of board indices for valid non-capturing moves.
+        - A list of board indices for valid capturing moves.
 
-        If `with_castling_bool` is set to `False`, castling moves will not be considered.
+        The behavior of the method can be controlled by the `with_castling_bool` parameter:
+        - If `with_castling_bool` is set to `True` (default), the method will consider castling as a valid move option for the king.
+        - If set to `False`, castling moves will be excluded from the possible moves for the king.
 
-        Arguments:
-        - index (int): The board index (0-63) of the piece for which to calculate possible moves.
-        - with_castling_bool (bool): Whether to include castling moves in the possible moves (default is True).
-
+        Parameters:
+        index : int
+            The board index (0-63) of the piece for which to calculate possible moves.
+        
+        with_castling_bool : bool, optional
+            A flag indicating whether to include castling in the king's possible moves (default is `True`).
+        
         Returns:
-        - tuple[list[int], list[int]]: 
-            - The first list contains indices of all valid non-capturing moves.
-            - The second list contains indices of all valid capturing moves.
+        tuple[list[int], list[int]]
+            A tuple containing two lists:
+            - The first list includes indices of all valid non-capturing moves for the piece.
+            - The second list includes indices of all valid capturing moves for the piece.
 
-        Process flow:
-        - Checks whose move it is (white or black).
-        - Determines the type of piece at the given index.
-        - Uses helper methods (`get_moves_at_offsets`, `get_moves_in_directions`) to populate the lists of possible moves.
-        - Special handling for pawns (including en passant) and kings (including castling).
+        Notes:
+        - The method first determines the type of piece at the given index and whose turn it is to move.
+        - Depending on the piece type, it uses helper methods (`get_moves_at_offsets`, `get_moves_in_directions`) 
+        to generate potential moves.
+        - Special handling is included for pawns (considering forward movement, diagonal captures, and en passant) 
+        and kings (considering standard movement and castling).
+        - The method does not check for move legality in terms of leaving the king in check.
         """
         piece = self.fields[index]
-        possible_moves = []
-        capturing_moves = []
+        possible_moves, capturing_moves = [], []
 
-        if self.white_moves:
-            # PAWN
-            if piece == 9:
-                offset = 8
-                start_row = 1
-                left_capture = index + offset - 1
-                right_capture = index + offset + 1
+        # Pawn moves
+        if piece in (9, 1):  
+            self.handle_pawn_moves(index, piece, possible_moves, capturing_moves)
+        # Rook moves
+        elif piece in (10, 2):  
+            possible_moves, capturing_moves = \
+                self.get_moves_in_directions(index, self.ROOK_MOVEMENT_DIRECTIONS)
+        # Knight moves
+        elif piece in (11, 3):  
+            possible_moves, capturing_moves = \
+                self.get_moves_at_offsets(index, self.KNIGHT_MOVEMENT_OFFSET)
+        # Bishop moves
+        elif piece in (12, 4):  
+            possible_moves, capturing_moves = \
+                self.get_moves_in_directions(index, self.BISHOP_MOVEMENT_DIRECTIONS)
+        # Queen moves
+        elif piece in (13, 5):  
+            possible_moves, capturing_moves = \
+                self.get_moves_in_directions(index, self.QUEEN_MOVEMENT_DIRECTIONS)
+        # King moves
+        elif piece in (14, 6):  
+            possible_moves, capturing_moves = \
+                self.get_moves_at_offsets(index, self.KING_MOVE_OFFSETS)
+            if with_castling_bool:
+                self.handle_castling_moves(index, possible_moves)
 
-                # capture
-                # if not on left edge
-                if index % 8 != 0:
-                    # if black piece or en passant on the left
-                    if (self.fields[left_capture] != 0 and self.fields[left_capture] < 8) or left_capture == self.en_passant:
-                        capturing_moves.append(left_capture)
-                # if not on right edge
-                if index % 8 != 7:
-                    # if black piece or en passant on the right
-                    if (self.fields[right_capture] != 0 and self.fields[right_capture] <8) or right_capture == self.en_passant:
-                        capturing_moves.append(right_capture)
-
-                # move
-                if self.fields[index + offset] == 0:
-                    possible_moves.append(index + offset) # move one up
-
-                    if index // 8 == start_row and self.fields[index + offset * 2] == 0:
-                        possible_moves.append(index + offset * 2) # move two up
-            # ROOK
-            elif piece == 10: possible_moves, capturing_moves = self.get_moves_in_directions(self.fields, index, self.ROOK_MOVEMENT_DIRECTIONS, self.white_moves)
-            # KNIGHT
-            elif piece == 11: possible_moves, capturing_moves = self.get_moves_at_offsets(self.fields, index, self.KNIGHT_MOVEMENT_OFFSET, self.white_moves)
-            # BISHOP
-            elif piece == 12: possible_moves, capturing_moves = self.get_moves_in_directions(self.fields, index, self.BISHOP_MOVEMENT_DIRECTIONS, self.white_moves)
-            # QUEEN
-            elif piece == 13: possible_moves, capturing_moves = self.get_moves_in_directions(self.fields, index, self.QUEEN_MOVEMENT_DIRECTIONS, self.white_moves)
-            # KING
-            elif piece == 14: 
-                king_move_offsets = self.QUEEN_MOVEMENT_DIRECTIONS
-                # castle
-                if with_castling_bool:
-                    # check if kings castling possible
-                    if self.castling[0]:
-                        # check if fields between king and rook are empty
-                        if self.fields[index + 1] == 0 and self.fields[index + 2] == 0:
-                            # check if fields king moves through are under attack
-                            if not (self.if_field_under_attack(index, True, True) or self.if_field_under_attack(index + 1, True, True) or self.if_field_under_attack(index + 2, True, True)):
-                                # add kings castling move to list of offsets
-                                king_move_offsets.append((0, 2))
-                    # check if queens castling possible
-                    if self.castling[1]:
-                        # check if fields between king and rook are empty
-                        if all(f == 0 for f in self.fields[index-3 : index]):
-                            # check if fields king moves through are under attack
-                            if not (self.if_field_under_attack(index, True, True) or self.if_field_under_attack(index - 1, True, True) or self.if_field_under_attack(index - 2, True, True)):
-                                # add queens castling move to list of offsets
-                                king_move_offsets.append((0, -2))
-
-                possible_moves, capturing_moves= self.get_moves_at_offsets(self.fields, index, king_move_offsets, self.white_moves)
-
-        else: # Code for black pieces
-            # PAWN
-            if piece == 1:
-                offset = -8
-                start_row = 6
-                left_capture = index + offset - 1
-                right_capture = index + offset + 1
-                
-                # capture
-                # if not on left edge
-                if index % 8 != 0:
-                    # if white piece or en passant on the left
-                    if self.fields[left_capture] > 8 or left_capture == self.en_passant:
-                        capturing_moves.append(left_capture)
-                # if not on right edge
-                if index % 8 != 7:
-                    # if white piece or en passant on the right
-                    if self.fields[right_capture] > 8 or right_capture == self.en_passant:
-                        capturing_moves.append(right_capture)
-
-                # move
-                if self.fields[index + offset] == 0:
-                    possible_moves.append(index + offset) # move one down
-
-                    if index // 8 == start_row and self.fields[index + offset * 2] == 0:
-                        possible_moves.append(index + offset * 2) # move two down
-            # ROOK
-            elif piece == 2: possible_moves, capturing_moves = self.get_moves_in_directions(self.fields, index, self.ROOK_MOVEMENT_DIRECTIONS, self.white_moves)
-            # KNIGHT
-            elif piece == 3: possible_moves, capturing_moves = self.get_moves_at_offsets(self.fields, index, self.KNIGHT_MOVEMENT_OFFSET, self.white_moves)
-            # BISHOP
-            elif piece == 4: possible_moves, capturing_moves = self.get_moves_in_directions(self.fields, index, self.BISHOP_MOVEMENT_DIRECTIONS, self.white_moves)
-            # QUEEN
-            elif piece == 5: possible_moves, capturing_moves = self.get_moves_in_directions(self.fields, index, self.QUEEN_MOVEMENT_DIRECTIONS, self.white_moves)
-            # KING
-            elif piece == 6:  
-                king_move_offsets = self.QUEEN_MOVEMENT_DIRECTIONS
-                # castle
-                if with_castling_bool:
-                    # check if kings castling possible
-                    if self.castling[2]:
-                        # check if fields between king and rook are empty
-                        if self.fields[index + 1] == 0 and self.fields[index + 2] == 0:
-                            # check if fields king moves through are under attack
-                            if not (self.if_field_under_attack(index, False, True) or self.if_field_under_attack(index + 1, False, True) or self.if_field_under_attack(index + 2, False, True)):
-                                # add kings castling move to list of offsets
-                                king_move_offsets.append((0, 2))
-                    # check if queens castling possible
-                    if self.castling[3]:
-                        # check if fields between king and rook are empty
-                        if all(f == 0 for f in self.fields[index-3 : index]):
-                            # check if fields king moves through are under attack
-                            if not (self.if_field_under_attack(index, False, True) or self.if_field_under_attack(index - 1, False, True) or self.if_field_under_attack(index - 2, False, True)):
-                                # add queens castling move to list of offsets
-                                king_move_offsets.append((0, -2))
-
-                possible_moves, capturing_moves = self.get_moves_at_offsets(self.fields, index, king_move_offsets, self.white_moves)
-                
         return possible_moves, capturing_moves
+    def handle_pawn_moves(self, 
+                          index: int, 
+                          piece: int, 
+                          possible_moves: list[int], 
+                          capturing_moves: list[int]) -> None:
+        """
+        """
+        offset = 8 if piece == 9 else -8
+        start_row = 1 if piece == 9 else 6
+        left_capture, right_capture = index + offset - 1, index + offset + 1
+
+        if index % 8 != 0 and \
+            (self.fields[left_capture] not in (0, piece) or \
+            left_capture == self.en_passant):
+            capturing_moves.append(left_capture)
+        if index % 8 != 7 and \
+            (self.fields[right_capture] not in (0, piece) or \
+             right_capture == self.en_passant):
+            capturing_moves.append(right_capture)
+
+        if self.fields[index + offset] == 0:
+            possible_moves.append(index + offset)
+            if index // 8 == start_row and self.fields[index + 2 * offset] == 0:
+                possible_moves.append(index + 2 * offset)
+    def handle_castling_moves(self, index: int, possible_moves: list[int]) -> None:
+        """
+        Append valid castling moves to the list of possible moves for a king.
+
+        Parameters:
+        index : int
+            The current index of the king on the board.
+        
+        possible_moves : list[int]
+            A list of indices representing possible moves for the king, to which valid castling moves will be added.
+        
+        Notes:
+        - The method assumes that `self.castling` is a list where:
+        - Index 0: White kingside castling (if True, it's allowed).
+        - Index 1: White queenside castling.
+        - Index 2: Black kingside castling.
+        - Index 3: Black queenside castling.
+        - The `self.fields` array represents the board state, where each element is a piece or empty square.
+        """
+        
+        if self.white_moves():
+            # White king's castling options
+            if index == 4:  # Ensure the piece is actually a white king on e1
+                # Kingside castling for white
+                if self.castling[0] and \
+                    self.fields[5] == 0 and \
+                    self.fields[6] == 0:
+                    possible_moves.append(6)
+                # Queenside castling for white
+                if self.castling[1] and \
+                    self.fields[1] == 0 and \
+                    self.fields[2] == 0 and \
+                    self.fields[3] == 0:
+                    possible_moves.append(2)
+        
+        elif not self.white_moves():
+            # Black king's castling options
+            if index == 60:  # Ensure the piece is actually a black king on e8
+                # Kingside castling for black
+                if self.castling[2] and \
+                    self.fields[61] == 0 and \
+                    self.fields[62] == 0:
+                    possible_moves.append(62)
+                # Queenside castling for black
+                if self.castling[3] and \
+                    self.fields[57] == 0 and \
+                    self.fields[58] == 0 and \
+                    self.fields[59] == 0:
+                    possible_moves.append(58)
     def get_moves_in_directions(self, index: int, directions: list[tuple[int, int]]) -> tuple[list[int], list[int]]:
         """
         Calculate all possible moves in specified directions for a piece on the board.
@@ -551,3 +546,36 @@ black queen: {cq}\n
                     if bool((self.fields[temp_index] >> 3) & 1) != self.white_moves: possible_captures.append(temp_index)
 
         return possible_moves, possible_captures
+    def is_square_attacked(self, index: int, by_white: bool) -> bool:
+        """
+        """
+        for i in range(64):
+            if (self.fields[i] > 8) == by_white:
+                _, captures = self.all_possible_moves_for_piece(i, False)
+                if index in captures:
+                    return True
+        return False
+    def is_king_in_check(self, by_white: bool) -> bool:
+        """
+        """
+        king_index = self.fields.index(14 if by_white else 6)
+        return self.is_square_attacked(king_index, not by_white)
+    def all_possible_moves(self) -> list[str]:
+        """
+        """
+        moves = []
+        for i in range(64):
+            if self.fields[i] != 0 and (self.fields[i] > 8) == self.white_moves:
+                possible_moves, capturing_moves = self.all_possible_moves_for_piece(i)
+                for move in possible_moves + capturing_moves:
+                    backup_layout = Layout(self.layout2fen())
+                    backup_layout.update(i, move)
+                    if not backup_layout.is_king_in_check(not self.white_moves):
+                        moves.append((i, move))
+        return moves
+    def is_checkmate(self) -> bool:
+        """"""
+        return self.is_king_in_check(not self.white_moves) and not self.all_possible_moves()
+    def is_stalemate(self) -> bool:
+        """"""
+        return not self.is_king_in_check(not self.white_moves) and not self.all_possible_moves()

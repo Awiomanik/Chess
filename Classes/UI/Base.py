@@ -53,6 +53,7 @@ class UI_base():
         # paths
         self.root_dir: str = root_dir
         self.gfx_dir: str = os.path.join(root_dir, "Assets", "GFX")
+        
         # inputs
         self.event_callbacks: InputStack = InputStack()
         self.key_map = {
@@ -63,8 +64,10 @@ class UI_base():
         pygame.K_RETURN: "ENTER",
         }
         self.mouse_pos = pygame.mouse.get_pos()
-        # usefull constants
         self.render_queue = []
+        
+        # moves
+        self.grabbed_piece: int | None = None 
         
     def window_set_up(self, window_caption: str = "The Szaszki Game") -> None:
         """
