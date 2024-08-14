@@ -37,6 +37,7 @@ class UI_base():
             event_callbacks (InputStack): Stack for managing and processing user input events.
             key_map (dict[int, str]): Dictionary mapping key constants 
                                       to string representations of key actions.
+            self.memo (dict[tuple[int, int, int, int], pygame.Surface]): Memory for mask subsurfaces.
 
     Methods:
         __init__(root_dir: str) -> None:
@@ -111,6 +112,7 @@ class UI_base():
         pygame.K_RETURN: "ENTER",
         }
         self.mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
+        # Drawing
         self.dirty_rectangles: list[tuple[pygame.Rect, list[pygame.Surface]]] = []
         """
         List of dirty rectangls to optimize rendering.
@@ -118,6 +120,8 @@ class UI_base():
         """
         self.background_mask: pygame.Surface = None
         """Mask for a non-changeble background to fill dirty rectangles"""
+        self.memo: dict[tuple[int, int, int, int], pygame.Surface] = {}
+        """Memory for mask subsurfaces."""
         
     def window_set_up(self, window_caption: str = "The Szaszki Game") -> None:
         """
@@ -150,23 +154,27 @@ class UI_base():
         that consumes sizable amount of memory due to memoization of `pygame.Surface` objects.
         Might need adjustment if memory usage will be a concern.
         """
-        # memoization
-        memo: dict[tuple[int, int, int, int], pygame.Surface] = {}
+
         # loop through dirty rectangles
         for rect, surfaces in self.dirty_rectangles:
             # check memory
             key = tuple(rect)
-            if key in memo:
-                submask: pygame.Surface = memo[key]
+            if key in self.memo:
+                submask: pygame.Surface = self.memo[key]
             else:
                 submask: pygame.Surface = self.background_mask.subsurface(rect)
-                memo[key] = submask
+                self.memo[key] = submask
 
-            # blit mask and updates
+            # blit mask
             self.screen.blit(submask, rect)
+            
+            # blit updates
             for surface in surfaces:
                 self.screen.blit(surface, rect)
-                
+
+        # Reset dirty rectangles
+        self.dirty_rectangles.clear()
+
         # Update pygame and clock every FPS'th of a secound
         # update() can redraw only 'dirty rectangles' and not tot the whole screen
         # that can optimize rendering of the game
