@@ -38,6 +38,7 @@ class UI_base():
             key_map (dict[int, str]): Dictionary mapping key constants 
                                       to string representations of key actions.
             self.memo (dict[tuple[int, int, int, int], pygame.Surface]): Memory for mask subsurfaces.
+            self.param_scrren_rect (pygame.Rect): Rectangle of the screen.
 
     Methods:
         __init__(root_dir: str) -> None:
@@ -96,6 +97,8 @@ class UI_base():
             root_dir (str): Path to the main directory of the project for asset loading and other operations.
         """
         # set up window and pygame
+        self.param_screen_rect: pygame.Rect = pygame.Rect((0, 0) + self.RES)
+        """Rectangle of the screen"""
         self.window_set_up()
 
         # paths
@@ -137,7 +140,11 @@ class UI_base():
         # initialize Pygame
         pygame.init()
         # set up the full-screen mode and resolution
-        self.screen: pygame.Surface = pygame.display.set_mode(self.RES, pygame.FULLSCREEN)
+        self.screen: pygame.Surface = \
+            pygame.display.set_mode(self.RES, pygame.FULLSCREEN)
+        # set_clips prevents drawing outside of the screen, which results in:
+        # ValueError: subsurface rectangle outside surface area
+        self.screen.set_clip(self.param_screen_rect)
         # set the title of the window
         pygame.display.set_caption(window_caption)
         # set the variable for menaging frame rate
@@ -157,6 +164,10 @@ class UI_base():
 
         # loop through dirty rectangles
         for rect, surfaces in self.dirty_rectangles:
+            #print("old", rect)
+            rect = rect.clip(self.param_screen_rect)
+            #print("new", rect)
+
             # check memory
             key = tuple(rect)
             if key in self.memo:
@@ -164,6 +175,9 @@ class UI_base():
             else:
                 submask: pygame.Surface = self.background_mask.subsurface(rect)
                 self.memo[key] = submask
+
+            #print("mask", submask.get_rect())
+            #print()
 
             # blit mask
             self.screen.blit(submask, rect)
