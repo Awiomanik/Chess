@@ -363,7 +363,7 @@ black queen: {cq}\n
         # King moves
         elif piece in (14, 6):  
             possible_moves, capturing_moves = \
-                self.get_moves_at_offsets(index, self.KING_MOVE_OFFSETS)
+                self.get_moves_at_offsets(index, self.QUEEN_MOVEMENT_DIRECTIONS) # should work as offset
             if with_castling_bool:
                 self.handle_castling_moves(index, possible_moves)
 
