@@ -5,8 +5,16 @@ Classes:
     - InputEvent: Represents an individual input event (e.g., key press or mouse click).
     - InputStack: Manages a stack of InputEvent objects, allowing for easy handling of input events.
 
+Functions:
+    - render_multiline_text(text: str, font: pygame.font.Font,
+                            color: tuple[int, int, int] | tuple[int, int, int, int],
+                            spacing_factor: float=1, tabulator_width: int=8) -> pygame.Surface:
+        Renders a multiline text onto the surface.
+
 Author: WK-K
 """
+
+import pygame
 
 # Data Type for stacking events
 class InputEvent:
@@ -110,4 +118,60 @@ class InputStack:
             representation += f"\n{num}. {event}"
             num += 1
         return representation
+
+def render_multiline_text(text: str, font: pygame.font.Font,
+                            color: tuple[int, int, int] | tuple[int, int, int, int],
+                            spacing_factor: float=1, tabulator_width: int=8) -> pygame.Surface:
+    """
+    Renders a multiline text onto the surface.
+    Swaps tabulators for corresponding number of spaces based on tabulator_width parameter.
+
+    Returns:
+    - pygame.Surface: Semi transparent surface with text rendered on it.
+    
+    Parameters:
+    - text (str): The multiline text to render.
+    - font (pygame.Font): The font object used to render the text.
+    - color (tuple[int, int, int]): The color of the text.
+    - spacing_factor (float): Factor by which spacing between lines (defaults to hight of text) is devided.
+    - tabulator_width (int): Maximum width of the tabulator to be swapped with spaces
+    """
+    # Split the text into lines
+    lines: list[str] = text.splitlines()
+
+    # Process each line to calculate the size of the final surface
+    rendered_lines: list[pygame.Surface] = []
+    max_width: int = 0
+    total_height: int = 0
+
+    for line in lines:
+        # Convert tabs to spaces based on the tabulator width
+        line_splitted = line.split('\t')
+        if len(line_splitted) > 1:
+            temp_line = ''
+            for part in line_splitted:
+                temp_line += part
+                temp_line += ' ' * (tabulator_width - (len(temp_line) % tabulator_width))
+            line = temp_line
+        
+        # Render the line to get its surface
+        line_surface = font.render(line, True, color)
+        rendered_lines.append(line_surface)
+        
+        # Calculate width and height
+        max_width = max(max_width, line_surface.get_width())
+        total_height += line_surface.get_height() // spacing_factor
+
+    # Create a new surface to hold the entire multiline text
+    text_surface = pygame.Surface((max_width, total_height), pygame.SRCALPHA)
+    text_surface = text_surface.convert_alpha()  # Support transparency
+
+    # Blit each line onto the text surface
+    y = 0
+    for line_surface in rendered_lines:
+        text_surface.blit(line_surface, (0, y))
+        y += line_surface.get_height() // spacing_factor
+
+    return text_surface
+
 

@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 # project modules
 from Classes.UI.Base import UI_base
 from Classes.Chess.Layout import Layout
+from Classes.UI.Common import render_multiline_text
 
 # -- Abstract class --
 class AbstractGameplay(UI_base, ABC):
@@ -47,7 +48,7 @@ class AbstractGameplay(UI_base, ABC):
         self.mouse_clicked: bool = False
         """Whether the mouse was clicked"""
         self.grabbed_piece_field: int | None = None
-        """Index of grabbed piece on the board (0-63)"""
+        """Index of currently grabbed piece on the board (0-63) to exclude it from drawing"""
         self.possible_moves_arr: list[int] = []
         """List of available moves, without captures"""
         self.possible_captures_arr: list[int] = []
@@ -115,6 +116,8 @@ class DeveloperGameplay(AbstractGameplay):
         self.param_board_pos: tuple[int, int] = (60, 60)
         self.param_board_rect: pygame.Rect = pygame.Rect(self.param_board_pos + self.param_board_size)
         self.param_tile_size: tuple[int, int] = (120, 120)
+        self.param_info_block_rect: pygame.Rect = pygame.Rect(1080, 0, 840, 1080)
+        self.param_info_block_layout_change_rect: pygame.Rect = pygame.Rect(1080, 500, 840, 50)
         self.colors = {
             "Board_background": (33, 110, 46), # Dark green
             "Info_block": (100, 100, 100), # Grey
@@ -141,8 +144,12 @@ class DeveloperGameplay(AbstractGameplay):
                 self.gfx_chessboard.blit(tile, (x, y))
 
         # text
+        # fonts
         self.main_font = pygame.font.Font(os.path.join(self.gfx_dir, "Fonts", "handdrawn.ttf"), 50)
-        self.small_font = pygame.font.SysFont("consolas", 23)
+        self.small_font = pygame.font.SysFont("consolas", 19)
+
+        self.layout_change_info_True = self.small_font.render("Layout change: \25CB", False, (255, 0, 0))
+        self.layout_change_info_False = self.small_font.render("Layout change: \25CF", False, (0, 255, 0))
         
         # marks files (letters)
         marks_letters=[]
@@ -237,10 +244,13 @@ class DeveloperGameplay(AbstractGameplay):
                 self.gfx_grabbed_piece = self.gfx_pieces[clicked_piece]
                 self.possible_moves_arr, self.possible_captures_arr = \
                     layout.all_possible_moves_for_piece(clicked_field)
+                self.whether_layout_has_changed = True
 
             def loosing_grabbed_piece():
                 self.grabbed_piece_field = None
                 self.gfx_grabbed_piece = None
+                self.whether_layout_has_changed = True
+
                     
             # check on which field
             clicked_field: int = self.field_index_of_a_mouse()
@@ -254,7 +264,6 @@ class DeveloperGameplay(AbstractGameplay):
                     layout.update(self.grabbed_piece_field, clicked_field)  # update layout
                     loosing_grabbed_piece()
                     self.whether_layout_has_changed = True
-                    print(layout)
                 # move not possible
                 else:
                     # clicked on same field to loose piece
@@ -285,6 +294,24 @@ class DeveloperGameplay(AbstractGameplay):
         # display initial gameplay screen
         self.gamplay_init(layout)
 
+        def reset_background_mask():
+            if self.whether_layout_has_changed:
+                # clear chessboard
+                self.background_mask.blit(self.gfx_chessboard, (0, 0))
+
+                # place pieces
+                pos_x, pos_y = self.param_board_pos
+                tile_x, tile_y = self.param_tile_size
+                for i, piece in enumerate(layout.fields):
+                    # if there is a piece
+                    if piece:
+                        # if the piece is not currently grabbed
+                        if self.grabbed_piece_field and i != self.grabbed_piece_field:
+                            self.background_mask.blit(self.gfx_pieces[piece],
+                                                      (pos_x + tile_x * (i % 8),
+                                                       pos_y + tile_y * (i//8)))
+                                                        # % and // - ranks and files
+        
         def mouse_hover():
             if not self.grabbed_piece_field and \
                 (mhr_rect := self.mouse_field_rect()) != mhr_rect_old:
@@ -301,6 +328,7 @@ class DeveloperGameplay(AbstractGameplay):
                     if (piece_index_temp := layout.fields[self.field_index_of_a_mouse()]):
                         # append the piece
                         self.dirty_rectangles[-1][1].append((self.gfx_pieces[piece_index_temp]))
+        
         def grabbed_piece():
             if self.grabbed_piece_field:
                 # clear old
@@ -315,19 +343,18 @@ class DeveloperGameplay(AbstractGameplay):
                 else:                    
                     # loose piece
                     self.grabbed_piece_field = None
+        
         def info_block():
             if self.whether_layout_has_changed:
-                # Current Player
-                self.dirty_rectangles.append((pygame.Rect(1100, 80, 800, 200),
-                                            [self.small_font.render("White" if layout.white_moves else "Black", 
-                                                                    False, 
-                                                                    self.colors["Info_text"])]))
-                # FEN
-                self.dirty_rectangles.append((pygame.Rect(1100, 190, 800, 200),
-                                            [self.small_font.render(layout.layout2fen(), 
-                                                                    False, 
-                                                                    self.colors["Info_text"])]))
-        
+                layout_str: pygame.Surface = render_multiline_text(str(layout), self.small_font, 
+                                                self.colors["Info_text"], 1.2)
+                self.dirty_rectangles.append((self.param_info_block_rect, [layout_str]))
+                self.dirty_rectangles.append((self.param_info_block_layout_change_rect, 
+                                              [self.layout_change_info_True]))
+            else: 
+                self.dirty_rectangles.append((self.param_info_block_layout_change_rect, 
+                                              [self.layout_change_info_False]))
+
         while True:
             # save old mouse position
             mouse_old_position_rect: pygame.Rect = self.mouse_rect()
@@ -347,6 +374,9 @@ class DeveloperGameplay(AbstractGameplay):
                 self.mouse_down_handling(layout)
                 self.mouse_clicked = False
 
+            # Pieces
+            reset_background_mask()
+
             # Mouse hovering rectangle
             mouse_hover()
 
@@ -357,7 +387,9 @@ class DeveloperGameplay(AbstractGameplay):
             info_block()
 
             # Reset variables
-            self.whether_layout_has_changed = False
+            if self.whether_layout_has_changed:
+                self.background_mask.blit(self.screen.subsurface(self.param_board_rect), self.param_board_pos)
+                self.whether_layout_has_changed = False
 
             # Update UI
             self.update()
@@ -366,42 +398,6 @@ class DeveloperGameplay(AbstractGameplay):
     def gamplay_init(self, layout: Layout) -> None:
         """
         """
-        def render_multiline_text(text: str, position: tuple[int, int], font: pygame.font.Font,
-                                  color: tuple[int, int, int] | tuple[int, int, int, int],
-                                  tabulator_width: int=8):
-            """
-            Renders a multiline text on the screen.
-
-            Parameters:
-            - text (str): The multiline text to render.
-            - position (tuple[int, int]): The top-left position to start rendering the text.
-            - font (pygame.Font): The font object used to render the text.
-            - color (tuple[int, int, int]): The color of the text.
-            - tabulator_width (int): Maximum width of the tabulator to be swapped with spaces
-            """
-            # Split the text into lines
-            lines = text.splitlines()
-            
-            # Initial position
-            x, y = position
-            
-            # Render each line
-            for line in lines:
-                # change tabulators to spaces
-                line_splitted = line.split('\t')
-                if len(line_splitted) > 1:
-                    temp_line = ''
-                    for part in line_splitted:
-                        temp_line += part
-                        temp_line += ' ' * (tabulator_width - (len(temp_line) % tabulator_width))
-                    line = temp_line
-                # Render the text for the current line
-                line_surface = font.render(line, True, color)
-                # Draw the line on the screen
-                self.screen.blit(line_surface, (x, y))
-                # Move the y position down for the next line
-                y += line_surface.get_height() // 1.2
-
         # background
         self.screen.blit(self.gfx_chessboard, (0, 0))
         self.screen.blit(self.gfx_info_background, (1080, 0))
@@ -421,7 +417,8 @@ class DeveloperGameplay(AbstractGameplay):
         self.background_mask = self.screen.copy()
 
         # Info Block
-        render_multiline_text(str(layout), (1090, -60), self.small_font, self.colors["Info_text"])
+        self.screen.blit(render_multiline_text(str(layout),self.small_font, 
+                              self.colors["Info_text"], 1.2), (1080, 0))
 
 # -- Factory function --
 def gameplay_factory(root_dir: str, theme: str="Developer") -> AbstractGameplay:

@@ -103,7 +103,7 @@ class Layout:
         else: 
             temp_ep: str = board_index2file_rank_string[self.en_passant]
 
-        return """\n\n------LAYOUT OBJECT------\n
+        return """------LAYOUT OBJECT------\n
 - FEN: {out_fen}\n
 - All fields:\n
 {f1}\n

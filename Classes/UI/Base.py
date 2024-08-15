@@ -37,8 +37,8 @@ class UI_base():
             event_callbacks (InputStack): Stack for managing and processing user input events.
             key_map (dict[int, str]): Dictionary mapping key constants 
                                       to string representations of key actions.
-            self.memo (dict[tuple[int, int, int, int], pygame.Surface]): Memory for mask subsurfaces.
-            self.param_scrren_rect (pygame.Rect): Rectangle of the screen.
+            memo (dict[tuple[int, int, int, int], pygame.Surface]): Memory for mask subsurfaces.
+            param_scrren_rect (pygame.Rect): Rectangle of the screen.
 
     Methods:
         __init__(root_dir: str) -> None:
