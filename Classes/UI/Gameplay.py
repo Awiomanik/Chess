@@ -23,6 +23,7 @@ Author: WK-K
 import pygame
 import os
 from abc import ABC, abstractmethod
+import time, psutil # performance metrics in developer theme
 # project modules
 from Classes.UI.Base import UI_base
 from Classes.Chess.Layout import Layout
@@ -117,7 +118,8 @@ class DeveloperGameplay(AbstractGameplay):
         self.param_board_rect: pygame.Rect = pygame.Rect(self.param_board_pos + self.param_board_size)
         self.param_tile_size: tuple[int, int] = (120, 120)
         self.param_info_block_rect: pygame.Rect = pygame.Rect(1080, 0, 840, 1080)
-        self.param_info_block_layout_change_rect: pygame.Rect = pygame.Rect(1080, 500, 840, 50)
+        self.param_info_block_layout_change_rect: pygame.Rect = pygame.Rect(1080, 600, 840, 50)
+        self.param_info_block_perf_rect: pygame.Rect = pygame.Rect(1080, 650, 840, 300)
         self.colors = {
             "Board_background": (33, 110, 46), # Dark green
             "Info_block": (100, 100, 100), # Grey
@@ -125,8 +127,18 @@ class DeveloperGameplay(AbstractGameplay):
             "Text": (255, 215, 0), # Golden
             "Mouse_hover": (255, 215, 0, 100) # Gold semi-transparent
         }
+        """
+        colors include:
+        - `Board_background`
+        - `info_block`
+        - `info_text`
+        - `Text`
+        - `Mouse_hover`
+        """
         self.empty_chessboard_mask: pygame.Surface = None
         self.whether_layout_has_changed: bool = False
+        # Animations
+        self.anm_layout_change: int = 0
     def load_assets(self) -> None:
         """
         """
@@ -148,8 +160,8 @@ class DeveloperGameplay(AbstractGameplay):
         self.main_font = pygame.font.Font(os.path.join(self.gfx_dir, "Fonts", "handdrawn.ttf"), 50)
         self.small_font = pygame.font.SysFont("consolas", 19)
 
-        self.layout_change_info_True = self.small_font.render("Layout change: \25CB", False, (255, 0, 0))
-        self.layout_change_info_False = self.small_font.render("Layout change: \25CF", False, (0, 255, 0))
+        self.layout_change_info_False = self.small_font.render("Layout change: -", False, (0, 255, 0))
+        self.layout_change_info_True = self.small_font.render("Layout change: X", False, (255, 0, 0))
         
         # marks files (letters)
         marks_letters=[]
@@ -191,19 +203,24 @@ class DeveloperGameplay(AbstractGameplay):
         #self.gfx_info_background.blit(self.main_font.render("Current player:", False, self.colors["Info_text"]), (20, 20))
         #self.gfx_info_background.blit(self.main_font.render("Current FEN:   ", False, self.colors["Info_text"]), (20, 120))
         #self.gfx_info_background.blit(self.main_font.render("...            ", False, self.colors["Info_text"]), (20, 220))
-   
+
+        # PERFORMANCE METRICS
+        self.perf_min_fps = self.FPS
+        self.perf_max_memory_usage = 0
+        self.perf_start_time = time.time()
+
     # Utils
     def mouse_field_rect(self) -> pygame.Rect | None:
         """
         """
         x, y = self.mouse_pos[0] - 60, self.mouse_pos[1] - 60
-        if 0 < x < self.param_board_size[0] and \
-           0 < y < self.param_board_size[1]:
+        if 0 < x <= self.param_board_size[0] and \
+           0 < y <= self.param_board_size[1]:
             for i in range(8): 
                 for j in range(8):
                     tx, ty = self.param_tile_size
-                    if i * tx < x < (i + 1) * tx and \
-                        j * ty < y < (j + 1) * ty:
+                    if i * tx < x <= (i + 1) * tx and \
+                        j * ty < y <= (j + 1) * ty:
                         return pygame.Rect(i * tx + 60, j * ty + 60, 120, 120)
         else:
             return None
@@ -216,8 +233,8 @@ class DeveloperGameplay(AbstractGameplay):
         for i in range(8):
             for j in range(8):
                 # if coursor is on that field
-                if i * 120 < x < (i + 1) * 120 and \
-                   j * 120 < y < (j + 1) * 120: 
+                if i * 120 < x <= (i + 1) * 120 and \
+                   j * 120 < y <= (j + 1) * 120: 
                     return i + j * 8
         return None
     def mouse_down_handling(self, layout: Layout) -> None:
@@ -346,14 +363,54 @@ class DeveloperGameplay(AbstractGameplay):
         
         def info_block():
             if self.whether_layout_has_changed:
+                # Leyout object info
                 layout_str: pygame.Surface = render_multiline_text(str(layout), self.small_font, 
                                                 self.colors["Info_text"], 1.2)
                 self.dirty_rectangles.append((self.param_info_block_rect, [layout_str]))
+                self.anm_layout_change = 15
+
+            # layout change indicator
+            if self.anm_layout_change > 0:
                 self.dirty_rectangles.append((self.param_info_block_layout_change_rect, 
-                                              [self.layout_change_info_True]))
+                                            [self.layout_change_info_True]))
+                self.anm_layout_change -= 1
             else: 
                 self.dirty_rectangles.append((self.param_info_block_layout_change_rect, 
                                               [self.layout_change_info_False]))
+            
+            # performance block
+            info_performance()
+                
+        def info_performance(interval_s: int=2):
+            # track time interval
+            current_time: float = time.time()
+            if current_time - self.perf_start_time >= interval_s:
+                self.perf_start_time = current_time
+                self.perf_min_fps = self.FPS
+                self.perf_max_memory_usage = 0
+
+            # get current fps
+            current_fps: float = self.clock.get_fps()
+            if current_fps > 0: # Avoid division by zero or unrealistic values in case of unpredicted behavior
+                self.perf_min_fps = min(self.perf_min_fps, current_fps)
+
+            # get memory usage
+            current_memory_usage: int = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # Convert to MB
+            self.perf_max_memory_usage = max(self.perf_max_memory_usage, current_memory_usage)
+
+            # get cpu usage
+            cpu_usage: float = psutil.cpu_percent(interval=0.1)
+
+            # Render debugging information
+            perf_info = f"Current FPS: {current_fps:.2f}\n" + \
+                        f"Minimum FPS (last 3 sec): {self.perf_min_fps:.2f}\n" + \
+                        f"Current Memory Usage: {current_memory_usage:.2f} MB\n" + \
+                        f"Maximum Memory Usage (last 3 sec): {self.perf_max_memory_usage:.2f} MB\n" + \
+                        f"CPU Usage: {cpu_usage:.2f}%"
+
+            # Add performance info text to dirty rectangles
+            self.dirty_rectangles.append((self.param_info_block_perf_rect, 
+                [render_multiline_text(perf_info,self.small_font, self.colors["Info_text"])]))
 
         while True:
             # save old mouse position
